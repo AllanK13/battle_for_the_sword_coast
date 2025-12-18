@@ -14,6 +14,24 @@ import { renderEncounterEnd } from './ui/screens/encounter_end.js';
 const data = {};
 let meta = loadMeta();
 
+// Debug flag: allow enabling via meta, localStorage key `vcg_debug`, or URL `?debug=1`.
+(function applyDebugFlag(){
+  try{
+    const urlDebug = (typeof window !== 'undefined' && window.location && new URLSearchParams(window.location.search).get('debug') === '1');
+    const stored = (typeof localStorage !== 'undefined' && localStorage.getItem('vcg_debug') === '1');
+    meta.debugEnabled = Boolean(meta.debugEnabled) || urlDebug || stored;
+    // helper to toggle and persist the flag from the console: `toggleDebug(true)` / `toggleDebug(false)`
+    window.toggleDebug = function(on){
+      try{
+        if(on) localStorage.setItem('vcg_debug','1'); else localStorage.removeItem('vcg_debug');
+        meta.debugEnabled = !!on;
+        if(typeof window !== 'undefined' && window.location) window.location.reload();
+      }catch(e){ /* ignore */ }
+    };
+    window.isDebugEnabled = function(){ return Boolean(meta.debugEnabled); };
+  }catch(e){ /* ignore */ }
+})();
+
 async function loadData(){
   async function fetchAny(candidates){
     for(const p of candidates){
