@@ -19,12 +19,19 @@ let meta = loadMeta();
   try{
     const urlDebug = (typeof window !== 'undefined' && window.location && new URLSearchParams(window.location.search).get('debug') === '1');
     const stored = (typeof localStorage !== 'undefined' && localStorage.getItem('vcg_debug') === '1');
-    meta.debugEnabled = Boolean(meta.debugEnabled) || urlDebug || stored;
+    // If `meta.debugEnabled` is an explicit boolean (true/false), honor it.
+    // Otherwise fall back to URL or stored local flag.
+    if (typeof meta.debugEnabled === 'boolean') {
+      meta.debugEnabled = meta.debugEnabled;
+    } else {
+      meta.debugEnabled = urlDebug || stored;
+    }
     // helper to toggle and persist the flag from the console: `toggleDebug(true)` / `toggleDebug(false)`
     window.toggleDebug = function(on){
       try{
         if(on) localStorage.setItem('vcg_debug','1'); else localStorage.removeItem('vcg_debug');
         meta.debugEnabled = !!on;
+        try{ saveMeta(meta); }catch(e){}
         if(typeof window !== 'undefined' && window.location) window.location.reload();
       }catch(e){ /* ignore */ }
     };

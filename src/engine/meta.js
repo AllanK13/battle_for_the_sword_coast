@@ -59,3 +59,19 @@ export function buyLegendaryItem(meta, item){
   saveMeta(meta);
   return { success:true, meta };
 }
+
+// Set debug flag on/off and persist
+export function setDebug(meta, enabled){
+  if(!meta) return { success:false };
+  meta.debugEnabled = !!enabled;
+  saveMeta(meta);
+  return { success:true, meta };
+}
+
+// Toggle debug flag and persist
+export function toggleDebug(meta){
+  if(!meta) return { success:false };
+  meta.debugEnabled = !meta.debugEnabled;
+  saveMeta(meta);
+  return { success:true, meta };
+}
