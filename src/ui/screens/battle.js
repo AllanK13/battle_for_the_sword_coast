@@ -1,5 +1,6 @@
 import { el, cardTile } from '../renderer.js';
 import { navigate } from '../router.js';
+import { AudioManager } from '../../engine/audio.js';
 
 function slotNode(slotObj, idx, handlers={}, highlight=false, targetHighlight=false){
   const container = el('div',{class:'card-wrap panel'});
@@ -20,12 +21,12 @@ function slotNode(slotObj, idx, handlers={}, highlight=false, targetHighlight=fa
   if(slotObj.defending){
     // ensure the container can host an absolute badge
     container.style.position = 'relative';
-    const badge = el('div',{class:'defend-badge'},['🛡️']);
+    const badge = el('div',{class:'defend-badge'},['💨']);
     container.appendChild(badge);
   }
   if(slotObj.helped){
     container.style.position = 'relative';
-    const helpBadge = el('div',{class:'help-badge'},['🤝']);
+    const helpBadge = el('div',{class:'help-badge'},['🕷️']);
     container.appendChild(helpBadge);
   }
   const btns = el('div',{class:'row'});
@@ -45,12 +46,37 @@ function slotNode(slotObj, idx, handlers={}, highlight=false, targetHighlight=fa
 }
 
 export function renderBattle(root, ctx){
+  // Switch music to the appropriate battle track for this encounter.
+  try{
+    const enemy = (ctx && ctx.encounter && ctx.encounter.enemy) ? ctx.encounter.enemy : null;
+    if(enemy){
+      // Select a single music track for this encounter and persist it on the
+      // render context so repeated re-renders (e.g. from button presses)
+      // don't reinitialize or restart the music.
+      // Persist the selected track on the encounter object (not the outer ctx)
+      // so each enemy/encounter can have its own track instead of reusing the
+      // first-chosen value for the entire run.
+      if(!ctx.encounter._battleMusicSrc){
+        if(enemy.id === 'twig_blight' || (enemy.name && /twig/i.test(enemy.name))){
+          ctx.encounter._battleMusicSrc = './assets/music/battle_1.mp3';
+        } else {
+          const picks = ['battle_1.mp3','battle_2.mp3','battle_3.mp3'];
+          const sel = picks[Math.floor(Math.random() * picks.length)];
+          ctx.encounter._battleMusicSrc = `./assets/music/${sel}`;
+        }
+        
+      }
+      AudioManager.init(ctx.encounter._battleMusicSrc, { autoplay:true, loop:true });
+    }
+  }catch(e){ /* ignore audio init failures */ }
+
+  // Music is controlled only by screen navigation; do not manipulate it on button presses.
   const hud = el('div',{class:'hud'},[]);
   // AP decrement visual: compare last known AP on ctx
   const apText = el('div',{class:'ap-display'},['AP: '+ctx.encounter.ap+'/'+ctx.encounter.apPerTurn]);
-  const endRunBtn = el('button',{class:'btn end-run-btn'},['End Run']);
+  const endRunBtn = el('button',{class:'btn end-run-btn'},['Give Up']);
   endRunBtn.addEventListener('click',()=>{
-    const ok = window.confirm('End run? This will forfeit current progress and return to the start screen.');
+    const ok = window.confirm('Give up? This will forfeit current progress and return to the start screen.');
     if(ok){ navigate('start'); }
   });
   if(typeof ctx._lastAp === 'undefined') ctx._lastAp = ctx.encounter.ap;
@@ -94,6 +120,33 @@ export function renderBattle(root, ctx){
   });
   root.appendChild(historyToggle);
 
+  // Floating music control (bottom-right)
+  try{
+    const musicBtn = el('button',{class:'btn music-btn floating icon', style:'position:fixed;right:18px;bottom:36px;z-index:10030;height:40px;display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:6px;background:linear-gradient(180deg,#10b981,#047857);color:#fff;border:1px solid rgba(0,0,0,0.12);font-size:22px', title:'Music'},[ el('span',{style:'font-size:22px;line-height:1;display:inline-block'},[ AudioManager.isEnabled() ? '🔊' : '🔈' ]) ]);
+    const musicPanel = el('div',{class:'panel music-panel', style:'position:fixed;right:18px;bottom:76px;z-index:10030;display:none;padding:8px;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.25)'},[]);
+    const volLabel = el('div',{},['Volume']);
+    const volValue = Math.round((AudioManager.getVolume ? AudioManager.getVolume() : 0.6) * 100);
+    const volInput = el('input',{type:'range', min:0, max:100, value: String(volValue), style:'width:160px;display:block'});
+    volInput.addEventListener('input', (ev)=>{ const v = Number(ev.target.value || 0) / 100; AudioManager.setVolume(v); });
+    musicPanel.appendChild(volLabel);
+    musicPanel.appendChild(volInput);
+
+    let panelTimer = null;
+    function showPanel(){
+      musicPanel.style.display = 'block';
+      if(panelTimer) clearTimeout(panelTimer);
+      panelTimer = setTimeout(()=>{ musicPanel.style.display = 'none'; panelTimer = null; }, 4000);
+    }
+
+    musicBtn.addEventListener('click', ()=>{ const on = AudioManager.toggle(); musicBtn.textContent = on ? '🔊' : '🔈'; showPanel(); });
+    musicBtn.addEventListener('mouseover', showPanel);
+    musicPanel.addEventListener('mouseover', ()=>{ if(panelTimer) clearTimeout(panelTimer); });
+    musicPanel.addEventListener('mouseleave', ()=>{ if(panelTimer) clearTimeout(panelTimer); panelTimer = setTimeout(()=>{ musicPanel.style.display='none'; panelTimer=null; }, 1000); });
+
+    root.appendChild(musicBtn);
+    root.appendChild(musicPanel);
+  }catch(e){ /* ignore if AudioManager unavailable */ }
+
   // Inline message area removed — cancel button is available as a persistent control
   const cancelPending = el('button',{class:'btn action-btn cancel-btn'},['Cancel Pending']);
   cancelPending.addEventListener('click',()=>{
@@ -117,24 +170,48 @@ export function renderBattle(root, ctx){
 
   // responsive scaling: compute a scale factor and set CSS variable `--ui-scale` on :root
   (function setupScale(){
-    const update = ()=>{
-      // remove listener when panel is no longer in the DOM
-      if(!panel.isConnected){ window.removeEventListener('resize', update); return; }
-      const container = root;
-      const panelRect = panel.getBoundingClientRect();
-      const pw = panelRect.width || panel.offsetWidth || 1100;
-      const ph = panelRect.height || panel.offsetHeight || 800;
-      const cw = container.clientWidth || window.innerWidth;
-      const ch = container.clientHeight || window.innerHeight;
-      let scale = Math.min(cw / pw, ch / ph, 1);
-      if(!isFinite(scale) || scale <= 0) scale = 1;
-      // avoid becoming too tiny; clamp to a sensible minimum
-      scale = Math.max(0.5, scale);
-      document.documentElement.style.setProperty('--ui-scale', String(scale));
+    if(ctx._scaleSetup) return;
+    // Throttle updates and only apply when change is noticeable to avoid
+    // rapid tiny adjustments while scrolling on mobile which causes jitter.
+    let rafId = null;
+    let lastScale = null;
+    const applyScale = (s)=>{
+      lastScale = s;
+      document.documentElement.style.setProperty('--ui-scale', String(s));
     };
-    window.addEventListener('resize', update);
+
+    const computeAndMaybeApply = ()=>{
+      // remove listener when panel is no longer in the DOM
+      if(!panel.isConnected){ window.removeEventListener('resize', schedule); window.removeEventListener('scroll', schedule); window.removeEventListener('orientationchange', schedule); return; }
+      try{
+        const container = root;
+        const panelRect = panel.getBoundingClientRect();
+        const pw = panelRect.width || panel.offsetWidth || 1100;
+        const ph = panelRect.height || panel.offsetHeight || 800;
+        const cw = container.clientWidth || window.innerWidth;
+        const ch = container.clientHeight || window.innerHeight;
+        let scale = Math.min(cw / pw, ch / ph, 1);
+        if(!isFinite(scale) || scale <= 0) scale = 1;
+        // avoid becoming too tiny; clamp to a sensible minimum
+        scale = Math.max(0.5, scale);
+        // only apply if change is larger than threshold to prevent jitter
+        if(lastScale === null || Math.abs(scale - lastScale) > 0.03){
+          applyScale(scale);
+        }
+      }catch(e){ /* ignore measurement errors */ }
+    };
+
+    const schedule = ()=>{
+      if(rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(()=>{ rafId = null; computeAndMaybeApply(); });
+    };
+
+    window.addEventListener('resize', schedule);
+    window.addEventListener('scroll', schedule, { passive:true });
+    window.addEventListener('orientationchange', schedule);
     // run after layout so measurements are meaningful
-    setTimeout(update, 0);
+    setTimeout(schedule, 0);
+    ctx._scaleSetup = true;
   })();
 
   // Summons renderer (kept as a function so we can render it later at the bottom)

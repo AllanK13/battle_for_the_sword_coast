@@ -8,4 +8,4 @@ npx http-server -c-1 -p 8080 -o
 
 Open http://localhost:8080/index.html
 
-This prototype is plain JavaScript, HTML and CSS. Data files live under `public/data` and source code in `src/`.
+This prototype is plain JavaScript, HTML and CSS. Data files live under `data/` at the repository root and source code is in `src/`.

@@ -2,6 +2,7 @@ import { createRNG } from './engine/rng.js';
 import { buildDeck } from './engine/deck.js';
 import { startEncounter, playHeroAttack, playHeroAction, enemyAct, isFinished, placeHero, replaceHero, useSummon, defendHero } from './engine/encounter.js';
 import { createMeta, buyUpgrade, buyLegendaryItem, loadMeta, saveMeta } from './engine/meta.js';
+import { AudioManager } from './engine/audio.js';
 import { register, navigate } from './ui/router.js';
 import { renderStart } from './ui/screens/start.js';
 import { renderStats } from './ui/screens/stats.js';
@@ -52,85 +53,20 @@ async function loadData(){
     return null;
   }
 
-  // Try relative and repo-scoped paths first (works for project pages),
-  // then fall back to absolute root paths and legacy filenames.
+  // Simple fetch candidates: prefer local repository `data/` folder (relative).
   const cards = await fetchAny([
-    'data/cards.json',
-    './data/cards.json',
-    'public/data/cards.json',
-    './public/data/cards.json',
-    '/data/cards.json',
-    '/public/data/cards.json',
-    '/Cards.clean.json','./Cards.clean.json','/Cards.json'
+    './data/cards.json', 'data/cards.json', '/data/cards.json'
   ]);
   const summons = await fetchAny([
-    'data/summons.json',
-    './data/summons.json',
-    'public/data/summons.json',
-    './public/data/summons.json',
-    '/data/summons.json',
-    '/public/data/summons.json',
-    '/Summons.clean.json','./Summons.clean.json','/Summons.json'
+    './data/summons.json', 'data/summons.json', '/data/summons.json'
   ]);
   const enemies = await fetchAny([
-    'data/enemies.json',
-    './data/enemies.json',
-    'public/data/enemies.json',
-    './public/data/enemies.json',
-    '/data/enemies.json',
-    '/public/data/enemies.json',
-    '/Enemies.clean.json','./Enemies.clean.json','/Enemies.json'
+    './data/enemies.json', 'data/enemies.json', '/data/enemies.json'
   ]);
   const upgrades = await fetchAny([
-    'data/upgrades.json',
-    './data/upgrades.json',
-    'public/data/upgrades.json',
-    './public/data/upgrades.json',
-    '/data/upgrades.json',
-    '/public/data/upgrades.json',
-    '/Upgrades.clean.json','./Upgrades.clean.json','/Upgrades.json'
+    './data/upgrades.json', 'data/upgrades.json', '/data/upgrades.json'
   ]);
 
-  // Fallback: if any resource failed to load, and we're on a GitHub Pages project
-  // site (e.g. username.github.io/repo/), try fetching the file from
-  // raw.githubusercontent.com using the repo name and common branches.
-  async function tryRawFallback(resource, destVarName){
-    if(resource) return resource;
-    try{
-      if(typeof window === 'undefined' || !window.location) return resource;
-      const host = window.location.hostname || '';
-      if(!host.endsWith('.github.io')) return resource;
-      const owner = host.split('.')[0];
-      const repo = (window.location.pathname || '').split('/').filter(Boolean)[0] || '';
-      if(!owner || !repo) return resource;
-      const branches = ['main','master'];
-      const candidates = [
-        'data/' + destVarName + '.json',
-        'public/data/' + destVarName + '.json',
-        destVarName.charAt(0).toUpperCase() + destVarName.slice(1) + '.clean.json',
-        destVarName.charAt(0).toUpperCase() + destVarName.slice(1) + '.json'
-      ];
-      for(const b of branches){
-        for(const p of candidates){
-          const url = `https://raw.githubusercontent.com/${owner}/${repo}/${b}/${p}`;
-          try{
-            const resp = await fetch(url);
-            if(!resp.ok) continue;
-            const j = await resp.json();
-            return j;
-          }catch(e){ /* ignore and try next */ }
-        }
-      }
-    }catch(e){ /* ignore */ }
-    return resource;
-  }
-
-  // Map variable names to resource variables
-  const resolvedCards = await tryRawFallback(cards, 'cards');
-  const resolvedSummons = await tryRawFallback(summons, 'summons');
-  const resolvedEnemies = await tryRawFallback(enemies, 'enemies');
-  const resolvedUpgrades = await tryRawFallback(upgrades, 'upgrades');
-  data.cards = resolvedCards; data.summons = resolvedSummons; data.enemies = resolvedEnemies; data.upgrades = resolvedUpgrades;
   data.cards = cards; data.summons = summons; data.enemies = enemies; data.upgrades = upgrades;
 }
 
@@ -147,80 +83,118 @@ function appStart(){
       saveMeta(meta);
     }
   }catch(e){}
-  register('start', (root)=> renderStart(root, {
-    data,
-    meta,
-    selectCard(id){ console.log('selected',id); },
-    onStartRun(opts){ startRun(opts); },
-    onShowStats(){ navigate('stats'); },
-    onShowUpgrades(){ navigate('upgrades'); },
-    onDebugGrant(){
-      try{ meta.ip = (meta.ip||0) + 10000; saveMeta(meta); }catch(e){ console.warn('debug grant failed', e); }
-      navigate('start');
-    },
-    onDebugUnlock(){
-      try{
-        // grant all cards and summons
-        meta.ownedCards = (data.cards||[]).filter(c=>c && c.id).map(c=>c.id);
-        meta.ownedSummons = (data.summons||[]).filter(s=>s && s.id).map(s=>s.id);
-        meta.legendaryUnlocked = true;
-        // top up IP too
-        meta.ip = (meta.ip||0) + 10000;
-        saveMeta(meta);
-      }catch(e){ console.warn('debug unlock failed', e); }
-      navigate('start');
-    }
-    ,
-    onDebugUnlockTown(){
-      try{
-        meta.totalIpEarned = Math.max(1, (meta.totalIpEarned||0));
-        saveMeta(meta);
-      }catch(e){ console.warn('debug unlock town failed', e); }
-      navigate('start');
-    }
-  }));
+  register('start', (root)=> {
+    // Switch to menu music when entering the start screen
+    try{
+      const musicCandidates = ['./assets/music/menu.mp3','assets/music/menu.mp3','/assets/music/menu.mp3'];
+      AudioManager.init(musicCandidates[0], { autoplay:true, loop:true });
+    }catch(e){ /* ignore */ }
+    return renderStart(root, {
+      data,
+      meta,
+      selectCard(id){ console.log('selected',id); },
+      onStartRun(opts){ startRun(opts); },
+      onShowStats(){ navigate('stats'); },
+      onShowUpgrades(){ navigate('upgrades'); },
+      onDebugGrant(){
+        try{ meta.ip = (meta.ip||0) + 10000; saveMeta(meta); }catch(e){ console.warn('debug grant failed', e); }
+        navigate('start');
+      },
+      onDebugUnlock(){
+        try{
+          // grant all cards and summons
+          meta.ownedCards = (data.cards||[]).filter(c=>c && c.id).map(c=>c.id);
+          meta.ownedSummons = (data.summons||[]).filter(s=>s && s.id).map(s=>s.id);
+          meta.legendaryUnlocked = true;
+          // top up IP too
+          meta.ip = (meta.ip||0) + 10000;
+          saveMeta(meta);
+        }catch(e){ console.warn('debug unlock failed', e); }
+        navigate('start');
+      }
+      ,
+      onDebugUnlockTown(){
+        try{
+          meta.totalIpEarned = Math.max(1, (meta.totalIpEarned||0));
+          saveMeta(meta);
+        }catch(e){ console.warn('debug unlock town failed', e); }
+        navigate('start');
+      }
+    });
+  });
 
 
   register('stats', (root)=> renderStats(root, { data, meta, onBack: ()=> navigate('start') }));
 
-  register('upgrades', (root)=> renderUpgrades(root, {
-    data,
-    meta,
-    buyUpgrade(id){
-      const u = (data.upgrades||[]).find(x=>x.id===id || x.upgrade===id);
-      if(!u) return;
-      const res = buyUpgrade(meta, u);
-      try{ saveMeta(meta); }catch(e){}
-      // simple feedback via alert if available
-      if(typeof window !== 'undefined' && window.alert){
-        if(res && res.success) window.alert('Purchased '+(u.upgrade||u.id));
-        else window.alert('Cannot purchase: insufficient IP');
-      }
-      // re-render the upgrades screen
-      navigate('upgrades');
-    },
-    buyLegendary(itemId){
-      // look up the item in cards, summons, or legendary lists
-      const findIn = (arr)=> (arr||[]).find(x=>x.id===itemId || x.name===itemId || x.upgrade===itemId);
-      const item = findIn(data.cards) || findIn(data.summons) || findIn(data.legendary) || findIn(data.upgrades);
-      if(!item) return;
-      const res = buyLegendaryItem(meta, item);
-      try{ saveMeta(meta); }catch(e){}
-      if(typeof window !== 'undefined' && window.alert){
-        if(res && res.success) window.alert('Purchased '+(item.name||item.upgrade||item.id));
-        else window.alert('Cannot purchase: insufficient IP');
-      }
-      navigate('upgrades');
-    },
-    onBack: ()=> navigate('start')
-  }));
+  register('upgrades', (root)=> {
+    // Switch to town music when entering upgrades screen (if available)
+    try{
+      const musicCandidates = ['./assets/music/town.mp3','assets/music/town.mp3','/assets/music/town.mp3'];
+      AudioManager.init(musicCandidates[0], { autoplay:true, loop:true });
+    }catch(e){ /* ignore */ }
+    return renderUpgrades(root, {
+      data,
+      meta,
+      buyUpgrade(id){
+        const u = (data.upgrades||[]).find(x=>x.id===id || x.upgrade===id);
+        if(!u) return;
+        const res = buyUpgrade(meta, u);
+        try{ saveMeta(meta); }catch(e){}
+        // simple feedback via alert if available
+        if(typeof window !== 'undefined' && window.alert){
+          if(res && res.success) window.alert('Purchased '+(u.upgrade||u.id));
+          else window.alert('Cannot purchase: insufficient IP');
+        }
+        // re-render the upgrades screen
+        navigate('upgrades');
+      },
+      buyLegendary(itemId){
+        // look up the item in cards, summons, or legendary lists
+        const findIn = (arr)=> (arr||[]).find(x=>x.id===itemId || x.name===itemId || x.upgrade===itemId);
+        const item = findIn(data.cards) || findIn(data.summons) || findIn(data.legendary) || findIn(data.upgrades);
+        if(!item) return;
+        const res = buyLegendaryItem(meta, item);
+        try{ saveMeta(meta); }catch(e){}
+        if(typeof window !== 'undefined' && window.alert){
+          if(res && res.success) window.alert('Purchased '+(item.name||item.upgrade||item.id));
+          else window.alert('Cannot purchase: insufficient IP');
+        }
+        navigate('upgrades');
+      },
+      onBack: ()=> navigate('start')
+    });
+  });
 
   register('battle', (root, params)=> renderBattle(root, params));
   register('encounter_end', (root, params)=> renderEncounterEnd(root, params));
-  register('store', (root, params)=> renderStore(root, params));
+  // Consolidate shop UI: redirect legacy `store` route to the canonical `upgrades` screen
+  register('store', (root, params)=> navigate('upgrades'));
   register('end', (root, params)=> renderEnd(root, params));
 
   navigate('start');
+
+  // Initialize background music to menu track. Place your music file at `assets/music/menu.mp3`.
+  try{
+    const musicCandidates = ['./assets/music/menu.mp3','assets/music/menu.mp3','/assets/music/menu.mp3'];
+    // Start with the first candidate; browsers will gracefully fail if missing.
+    AudioManager.init(musicCandidates[0], { autoplay:true, loop:true });
+    // Convenience helpers exposed for debugging or UI wiring
+    window.toggleMusic = function(){ return AudioManager.toggle(); };
+    window.setMusicVolume = function(v){ return AudioManager.setVolume(v); };
+    window.isMusicEnabled = function(){ return AudioManager.isEnabled(); };
+  }catch(e){ console.warn('Background music init failed', e); }
+
+  // Ensure playback starts after a user gesture when the browser blocks autoplay.
+  (function ensureGestureStart(){
+    try{
+      const events = ['pointerdown','keydown','touchstart','click'];
+      const handler = function(){
+        try{ AudioManager.play(); }catch(e){}
+        events.forEach(ev => window.removeEventListener(ev, handler));
+      };
+      events.forEach(ev => window.addEventListener(ev, handler, { passive: true }));
+    }catch(e){ /* ignore */ }
+  })();
 
   // Floating stats button removed — stats button is shown only on the start (menu) screen
 }

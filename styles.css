@@ -212,6 +212,20 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 /* top row contains playfield on the left and enemy on the right */
 .battle-top{display:flex;gap:18px;align-items:flex-start}
 
+/* Enemy area compensation: reduce how much the enemy visually scales by
+  applying a partial inverse transform controlled by --enemy-scale. This
+  counteracts the global --ui-scale so the enemy appears more stable. */
+.enemy-area{ 
+  transform-origin: top center;
+  /* Make the enemy column a fixed-size flex item so its inner card doesn't
+     shrink when the window width changes. The inner card itself uses fixed
+     pixel dimensions (with !important) to remain visually constant. */
+  transform: scale(calc(1 / var(--ui-scale, 1)));
+  flex: 0 0 auto;
+  min-width: 320px;
+  width: auto;
+}
+
 /* Nudge the playfield upward so the spaces sit higher on the screen */
 .battle-top .playfield{margin-top:-100px}
 
@@ -308,6 +322,14 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
   align-items:center;
   justify-content:center;
 }
+
+/* Prevent enemy card from resizing across breakpoints: keep a fixed visual size.
+   This works with the counter-scaling so the enemy remains visually constant. */
+.enemy-area .card{
+  width:280px !important;
+  height:480px !important;
+  max-width:none !important;
+}
 .enemy-area .card img{
   /* let the image fill most of the card area */
   max-height:calc(100% - 40px);
@@ -327,15 +349,18 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 }
 
 @media (max-width:1000px){
-  .enemy-area .card{ width:220px; height:330px; }
+  /* Keep enemy card at its base fixed size on medium screens to prevent
+     layout-driven shrinking. Allow only image tweaks. */
+  .enemy-area .card{ width:280px !important; height:480px !important; }
   .enemy-area .card img{ max-height:calc(100% - 12px); }
 }
 @media (max-width:720px){
-  .enemy-area .card{ width:200px; height:300px; }
+  .enemy-area .card{ width:280px !important; height:480px !important; }
   .enemy-area .card img{ max-height:calc(100% - 10px); }
 }
 @media (max-width:420px){
-  .enemy-area .card{ width:180px; height:260px; }
+  /* On very small screens, slightly reduce the enemy card so it fits. */
+  .enemy-area .card{ width:240px !important; height:360px !important; }
   .enemy-area .card img{ max-height:calc(100% - 8px); }
 }
 
@@ -659,7 +684,7 @@ html, body {
 body{
   /* leave room for fixed panels (history bottom-right, controls bottom-left)
      adjust if you change the height of those panels */
-  padding-bottom:1250px; /* increased to allow scrolling past summons */
+  padding-bottom:700px; /* reduced to avoid excessive blank space */
   /* page background image (use the PNG only to avoid 404s) */
   background-image: url('assets/background.png');
   background-size: cover;
@@ -873,8 +898,9 @@ body{
 /* Help badge shown on heroes that used the Help/support action */
 .help-badge{
   position:absolute;
-  bottom:8px;
-  right:8px;
+  /* align vertically with defend-badge and sit left of it */
+  bottom:32px;
+  right:52px;
   width:36px;
   height:36px;
   border-radius:999px;
