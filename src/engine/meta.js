@@ -6,7 +6,7 @@ export function createMeta(){
     totalIpEarned: 0,
     legendaryUnlocked: false,
     // enable debug UI when true
-    debugEnabled: true,
+    debugEnabled: false,
     partySlots: 3,
     ownedCards: [],
     ownedSummons: [],
