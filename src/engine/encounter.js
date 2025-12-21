@@ -320,9 +320,9 @@ export function playHeroAction(state, slotIndex, targetIndex=null){
       // Use deterministic RNG if available on state, else fallback to Math.random
       let roll = (state.rng && typeof state.rng.int === 'function') ? (state.rng.int(6) + 1) : (Math.floor(Math.random()*6) + 1);
       if(roll === 1){
-        state.enemy.stunnedTurns = Infinity;
-        return { success:true, type:'support', slot: slotIndex, id:'kiefer', stunned: true, roll };
-      }
+          state.enemy.stunnedTurns = 3;
+          return { success:true, type:'support', slot: slotIndex, id:'kiefer', stunned: true, roll };
+        }
       return { success:true, type:'support', slot: slotIndex, id:'kiefer', stunned: false, roll };
     }
 

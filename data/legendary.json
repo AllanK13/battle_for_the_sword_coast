@@ -4,7 +4,7 @@
     "type": "Shield",
     "ability": "Grant 30 temporary HP to a target hero",
     "restriction": "Once per run",
-    "ip_cost": 50,
+    "ip_cost": 100,
     "id": "blackrazor"
   },
   {
@@ -12,7 +12,7 @@
     "type": "Control",
     "ability": "Stuns the enemy for 2 turns",
     "restriction": "Once per run",
-    "ip_cost": 50,
+    "ip_cost": 100,
     "id": "whelm"
   },
   {
@@ -20,7 +20,7 @@
     "type": "Damage",
     "ability": "Reduces enemy HP by 50% of its max HP",
     "restriction": "Once per run",
-    "ip_cost": 50,
+    "ip_cost": 100,
     "id": "wave"
   },
   {
@@ -51,7 +51,7 @@
     "name": "Tor",
     "type": "Healer",
     "hp": 30.0,
-    "ability": "Mass Heal: heals entire party 10 HP",
+    "ability": "Mass Heal: heals entire party 8 HP",
     "actionType": "heal",
     "tier": 5,
     "slot_cost": 5.0,
@@ -87,7 +87,7 @@
     "name": "Kiefer",
     "type": "Support",
     "hp": 30.0,
-    "ability": "Telekineses: 1 in 6 chance enemy is stunned for rest of battle",
+    "ability": "Telekineses: 1 in 6 chance enemy is stunned for 3 turns",
     "actionType": "attack",
     "tier": 5,
     "slot_cost": 5.0,
