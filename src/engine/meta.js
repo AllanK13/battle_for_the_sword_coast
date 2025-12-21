@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'vcg_meta_v1';
+const SLOT_KEY_PREFIX = 'vcg_save_slot_v1_';
 
 export function createMeta(){
   return {
@@ -78,6 +79,33 @@ export function buyLegendaryItem(meta, item){
   }
   saveMeta(meta);
   return { success:true, meta };
+}
+
+// Save/load helper for numbered save slots (1-based index)
+export function saveSlot(slotIndex, meta, name){
+  try{
+    if(!slotIndex || slotIndex < 1 || slotIndex > 3) return false;
+    const payload = { meta: meta, savedAt: Date.now(), name: (typeof name === 'string' ? name : undefined) };
+    localStorage.setItem(SLOT_KEY_PREFIX + String(slotIndex), JSON.stringify(payload));
+    return true;
+  }catch(e){ return false; }
+}
+
+export function loadSlot(slotIndex){
+  try{
+    if(!slotIndex || slotIndex < 1 || slotIndex > 3) return null;
+    const raw = localStorage.getItem(SLOT_KEY_PREFIX + String(slotIndex));
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+
+export function deleteSlot(slotIndex){
+  try{
+    if(!slotIndex || slotIndex < 1 || slotIndex > 3) return false;
+    localStorage.removeItem(SLOT_KEY_PREFIX + String(slotIndex));
+    return true;
+  }catch(e){ return false; }
 }
 
 // Set debug flag on/off and persist

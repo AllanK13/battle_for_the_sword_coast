@@ -173,6 +173,16 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 .delete-save-btn:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(185,28,28,0.36)}
 .hud{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:transparent;border-radius:6px;margin-bottom:12px}
 .panel{background:transparent;padding:12px;border-radius:8px}
+.save-slot{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.03));padding:10px;border-radius:10px;box-shadow:0 8px 18px rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.03)}
+.save-slot .slot-title{font-size:16px;color:var(--accent);font-weight:900;margin-bottom:6px}
+.save-slot .muted{color:rgba(255,255,255,0.75);font-size:13px;margin-bottom:8px}
+.save-slot .btn{padding:8px 10px;border-radius:8px;font-weight:800}
+.save-slot .save-btn{background:linear-gradient(180deg,#34d399,#059669);color:#042a1f}
+.save-slot .save-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(4,120,87,0.26)}
+.save-slot .load-btn{background:linear-gradient(180deg,#60a5fa,#2563eb);color:#05204a}
+.save-slot .load-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(37,99,235,0.22)}
+.save-slot .delete-btn{background:linear-gradient(180deg,#fb7185,#ef4444);color:#fff}
+.save-slot .delete-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(235,68,68,0.22)}
 .muted{color:var(--muted)}
   .card-body{display:flex;flex-direction:column;gap:6px;overflow:hidden;padding-top:0}
 .card-stat{font-size:16px;font-weight:700;font-family:Segoe UI, Roboto, "Trebuchet MS", Georgia, serif;color:var(--accent);text-shadow:0 1px 0 rgba(0,0,0,0.6);letter-spacing:0.4px}
@@ -503,7 +513,7 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 .battle-panel .card.blackrazor img,
 .upgrades-screen .legendary-grid .card-wrap.blackrazor .card-image{
   max-height: calc(100% - 44px) !important;
-  width: 88% !important;
+  width: 82% !important;
   image-rendering: auto;
   filter: none;
 }

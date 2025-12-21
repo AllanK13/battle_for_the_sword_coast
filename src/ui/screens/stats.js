@@ -1,5 +1,5 @@
 import { el } from '../renderer.js';
-import { createMeta, saveMeta } from '../../engine/meta.js';
+import { createMeta, saveMeta, saveSlot, loadSlot, deleteSlot } from '../../engine/meta.js';
 import { AudioManager } from '../../engine/audio.js';
 
 function kvList(obj){
@@ -24,7 +24,6 @@ export function renderStats(root, ctx){
   const overview = el('div',{class:'stats-overview panel muted'},[]);
   overview.appendChild(el('div',{class:'stats-overview-item'},['Runs: ', el('strong',{},[String(meta.runs || 0)])]));
   overview.appendChild(el('div',{class:'stats-overview-item'},['Encounters beaten: ', el('strong',{},[String(meta.encountersBeaten || 0)])]));
-  // Show furthest reached enemy as a readable name when possible
   const enemiesList = (ctx && ctx.data && ctx.data.enemies) ? ctx.data.enemies : [];
   let furthestDisplay = 'N/A';
   if(typeof meta.furthestReachedEnemy !== 'undefined' && meta.furthestReachedEnemy !== null){
@@ -34,7 +33,6 @@ export function renderStats(root, ctx){
       if(e) furthestDisplay = e.name || e.id || String(f);
       else furthestDisplay = String(f);
     }else{
-      // f might be an id or name string
       const match = enemiesList.find(en => en.id === f || en.name === f);
       if(match) furthestDisplay = match.name || match.id || String(f);
       else furthestDisplay = String(f);
@@ -43,10 +41,7 @@ export function renderStats(root, ctx){
   overview.appendChild(el('div',{class:'stats-overview-item'},['Furthest reached enemy: ', el('strong',{},[furthestDisplay]) ]));
   container.appendChild(overview);
 
-  // characters
   const charUsage = meta.characterUsage || {};
-  // Map character IDs to names from data and sum counts by name
-  // include legendary hero entries (items in legendary with `hp`) so their IDs map to proper names
   const baseCards = (ctx && ctx.data && ctx.data.cards) ? ctx.data.cards : [];
   const legendaryCards = (ctx && ctx.data && ctx.data.legendary) ? (ctx.data.legendary.filter(l => l && typeof l.hp === 'number')) : [];
   const cards = legendaryCards.concat(baseCards);
@@ -62,9 +57,6 @@ export function renderStats(root, ctx){
   container.appendChild(mostUsedRow);
   container.appendChild(kvList(charNameCounts));
 
-  // summons
-  // summons: map summon IDs to names and sum counts by name
-  // include legendary summons (legendary entries without `hp`)
   const baseSummons = (ctx && ctx.data && ctx.data.summons) ? ctx.data.summons : [];
   const legendarySummons = (ctx && ctx.data && ctx.data.legendary) ? ctx.data.legendary.filter(l => l && typeof l.hp !== 'number') : [];
   const summonsData = baseSummons.concat(legendarySummons);
@@ -78,13 +70,11 @@ export function renderStats(root, ctx){
   container.appendChild(el('h3',{class:'section-title'},['Summons']));
   container.appendChild(kvList(summonNameCounts));
 
-  // enemies defeated / victories — consolidate id/name and always list all enemies
   const enemies = enemiesList;
   const defeatCounts = {};
   const victoryCounts = {};
   const metaDefObj = meta.enemyDefeatCounts || {};
   const metaVicObj = meta.enemyVictoryCounts || {};
-  // populate from game enemy list (use name as display, sum id+name counts)
   enemies.forEach((e, idx)=>{
     const id = e.id || String(idx);
     const name = e.name || id;
@@ -94,7 +84,6 @@ export function renderStats(root, ctx){
     defeatCounts[display] = countDef;
     victoryCounts[display] = countVic;
   });
-  // include any extra keys present in meta that don't match known enemy id/name
   Object.keys(metaDefObj).forEach(k=>{
     const matched = enemies.some((e, idx)=> (k === e.id || k === e.name || k === String(idx)));
     if(!matched) defeatCounts[k] = metaDefObj[k];
@@ -136,6 +125,82 @@ export function renderStats(root, ctx){
   const footer = el('div',{style:'display:flex;justify-content:flex-start;align-items:center;margin-top:8px'},[]);
   footer.appendChild(del);
   container.appendChild(footer);
+
+  container.appendChild(el('h3',{class:'section-title'},['Save Slots']));
+  const slotsPanel = el('div',{class:'panel save-slots', style:'display:flex;gap:8px;flex-wrap:wrap'},[]);
+
+  function formatSlotInfo(slotData){
+    if(!slotData) return 'Empty';
+    try{
+      const d = new Date(slotData.savedAt || 0);
+      const runsPart = (slotData.meta && slotData.meta.runs !== undefined) ? ('Runs: '+(slotData.meta.runs||0)) : '';
+      const namePart = slotData.name ? (String(slotData.name) + ' — ') : '';
+      return namePart + (runsPart ? (runsPart + ' — ' + d.toLocaleString()) : d.toLocaleString());
+    }catch(e){ return 'Saved'; }
+  }
+
+  for(let i=1;i<=3;i++){
+    const slotRaw = loadSlot(i);
+    const box = el('div',{class:'save-slot panel', style:'width:220px;padding:8px;display:flex;flex-direction:column;gap:6px'},[]);
+    const title = el('div',{class:'slot-title', style:'font-weight:600'},[ 'Slot '+i ]);
+    const info = el('div',{class:'muted'},[ formatSlotInfo(slotRaw) ]);
+    const btnRow = el('div',{style:'display:flex;gap:6px;'},[]);
+    const btnSave = el('button',{class:'btn save-btn'},['Save']);
+    const btnLoad = el('button',{class:'btn load-btn'},['Load']);
+    const btnDelete = el('button',{class:'btn delete-btn'},['Delete']);
+
+    btnSave.addEventListener('click', ()=>{
+      const ok = slotRaw ? confirm('Overwrite save slot '+i+'?') : true;
+      if(!ok) return;
+      // Prompt the user for a name after clicking Save
+      const promptDefault = (slotRaw && slotRaw.name) ? slotRaw.name : '';
+      const entered = window.prompt('Enter name for slot '+i+':', promptDefault);
+      if(entered === null) return; // cancelled
+      const nameVal = (String(entered).trim() === '') ? undefined : String(entered).trim();
+      const res = saveSlot(i, ctx.meta, nameVal);
+      if(!res) return alert('Failed to save slot');
+      // update info in-place and stay on stats screen
+      const newData = loadSlot(i);
+      info.textContent = formatSlotInfo(newData);
+      alert('Saved to slot '+i);
+    });
+
+    btnLoad.addEventListener('click', ()=>{
+      if(!slotRaw) return alert('Slot '+i+' is empty');
+      const ok = confirm('Load save from slot '+i+'? This will replace your current save.');
+      if(!ok) return;
+      try{
+        const payload = loadSlot(i);
+        if(!payload || !payload.meta) return alert('Invalid save data');
+        if(ctx && ctx.meta){ Object.keys(ctx.meta).forEach(k=>{ delete ctx.meta[k]; }); Object.entries(payload.meta).forEach(([k,v])=> ctx.meta[k]=v); }
+        saveMeta(ctx.meta);
+        alert('Loaded slot '+i);
+        // refresh displayed slot info in-place
+        const loaded = loadSlot(i);
+        info.textContent = formatSlotInfo(loaded);
+      }catch(e){ alert('Failed to load save: '+(e&&e.message)); }
+    });
+
+    btnDelete.addEventListener('click', ()=>{
+      if(!slotRaw) return alert('Slot '+i+' is already empty');
+      const ok = confirm('Delete save in slot '+i+'?');
+      if(!ok) return;
+      const res = deleteSlot(i);
+      if(!res) return alert('Failed to delete slot');
+      info.textContent = formatSlotInfo(null);
+      alert('Deleted slot '+i);
+    });
+
+    btnRow.appendChild(btnSave);
+    btnRow.appendChild(btnLoad);
+    btnRow.appendChild(btnDelete);
+    box.appendChild(title);
+    box.appendChild(info);
+    box.appendChild(btnRow);
+    slotsPanel.appendChild(box);
+  }
+
+  container.appendChild(slotsPanel);
 
   wrapper.appendChild(back);
   wrapper.appendChild(container);
