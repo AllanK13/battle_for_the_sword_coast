@@ -490,6 +490,15 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
   object-fit:contain;
 }
 
+/* Specific fixes for Acererak image rendering (avoid pixelation/glitch) */
+.enemy-area .card.acererak img{
+  /* ensure the image scales smoothly and doesn't overflow */
+  max-height: calc(100% - 40px) !important;
+  width: 92% !important;
+  image-rendering: auto;
+  filter: none;
+}
+
 /* Target the enemy card's HP stat (first .card-stat inside the card-body) and make it very large */
 .enemy-area .card .card-body .card-stat:first-child{
   font-size:198px !important;

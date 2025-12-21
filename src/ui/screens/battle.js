@@ -287,7 +287,18 @@ export function renderBattle(root, ctx){
 
   // show enemy image (wrapped in enemyArea) -- will append after playfield
   // use the manual HP label insertion (keeps the old prominent HP display)
-  const enemyCard = cardTile(ctx.encounter.enemy, { hideSlot: true, hideHp: true });
+  // Provide an explicit image override for known enemy assets that may
+  // have different filename casing or large dimensions to avoid rendering
+  // glitches on some platforms (Acererak image uses capital A file).
+  const enemyOpts = { hideSlot: true, hideHp: true };
+  try{
+    const enemyId = ctx.encounter.enemy && ctx.encounter.enemy.id;
+    if(enemyId === 'acererak'){
+      enemyOpts.imageOverride = './assets/Acererak.png';
+    }
+  }catch(e){}
+  const enemyCard = cardTile(ctx.encounter.enemy, enemyOpts);
+  try{ if(ctx.encounter.enemy && ctx.encounter.enemy.id === 'acererak') enemyCard.classList.add('acererak'); }catch(e){}
   // insert a prominent HP label inside the enemy card before the image so it's visible
   const hpLabel = el('div',{class:'enemy-hp'},['HP: '+(ctx.encounter.enemy && ctx.encounter.enemy.hp)]);
   const enemyArea = el('div',{class:'enemy-area'},[]);
