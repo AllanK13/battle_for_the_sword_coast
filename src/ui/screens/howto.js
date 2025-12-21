@@ -17,7 +17,7 @@ export function renderHowTo(root, ctx){
     { title: '🗡️ Actions Explained', body: ['Ability: Use a hero’s special action.', 'Dodge: Reduce incoming damage this turn (less effective against AoE).', 'Replace: Remove a hero to make room for another.'] },
     { title: '🧙 Summons', body: ['Summons are always available. They cost no AP. Each summon has restrictions on how often it can be used.'] },
     { title: '👹 Enemies', body: ['Each enemy has multiple attacks. On their turn, the enemy chooses one attack at random. Enemies grow more dangerous as you progress.'] },
-    { title: '🧠 Your Deck', body: ['You always have access to all cards in your deck. Cards take up deck slots. You start with 3 slots.'] },
+    { title: '🧠 Your Deck', body: ['You always have access to all cards in your deck. Cards take up party slots. You start with 3 slots.'] },
     { title: '🏆 Winning & Losing', body: ['Win: Enemy HP reaches 0.', 'Lose: No heroes remain on the battlefield.'] }
   ];
 
