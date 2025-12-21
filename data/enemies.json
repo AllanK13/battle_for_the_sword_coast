@@ -2,7 +2,7 @@
   {
     "name": "Twig Blight",
     "ip_reward": 1,
-    "hp": 20,
+    "hp": 18,
     "id": "twig_blight",
     "attacks": [
       { "name": "Claws", "type": "single", "dmg": 1 },
@@ -13,7 +13,7 @@
   {
     "name": "Wiltherp",
     "ip_reward": 3,
-    "hp": 35,
+    "hp": 32,
     "id": "wiltherp",
     "attacks": [
       { "name": "Poison Spray", "type": "single", "dmg": 2 },
@@ -24,7 +24,7 @@
   {
     "name": "Red Wizard",
     "ip_reward": 5,
-    "hp": 50,
+    "hp": 54,
     "id": "red_wizard",
     "attacks": [
       { "name": "Firebolt", "type": "single", "dmg": 3 },
@@ -35,7 +35,7 @@
   {
     "name": "Szass Tam",
     "ip_reward": 7,
-    "hp": 70,
+    "hp": 73,
     "id": "szass_tam",
     "attacks": [
       { "name": "Paralyzing Touch", "type": "single", "dmg": 4 },
@@ -46,7 +46,7 @@
   {
     "name": "King Snurre",
     "ip_reward": 9,
-    "hp": 100,
+    "hp": 106,
     "id": "snurre",
     "attacks": [
       { "name": "Rock Throw", "type": "single", "dmg": 5 },
@@ -57,7 +57,7 @@
   {
     "name": "Keraptis",
     "ip_reward": 11,
-    "hp": 130,
+    "hp": 137,
     "id": "keraptis",
     "attacks": [
       { "name": "Blight", "type": "single", "dmg": 6 },
@@ -68,7 +68,7 @@
   {
     "name": "Acererak",
     "ip_reward": 13,
-    "hp": 165,
+    "hp": 168,
     "id": "acererak",
     "attacks": [
       { "name": "Finger of Death", "type": "single", "dmg": 8 },
