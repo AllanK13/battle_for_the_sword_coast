@@ -24,7 +24,7 @@ export function renderStart(root, ctx){
   }
 
   // Add a fixed-position Stats button that only appears on the start/menu screen
-    const statsBtn = el('button',{class:'btn stats-btn floating icon', style:'position:fixed;right:116px;bottom:36px;z-index:10030;height:40px;display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:6px;font-size:16px', title:'Stats'},[ el('span',{style:'font-size:22px;line-height:1;display:inline-block'},['📊']) ]);
+    const statsBtn = el('button',{class:'btn stats-btn floating icon', style:'position:fixed;right:90px;bottom:36px;z-index:10030;height:40px;display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:6px;font-size:16px', title:'Stats'},[ el('span',{style:'font-size:22px;line-height:1;display:inline-block'},['📊']) ]);
     statsBtn.addEventListener('click', ()=>{ if(ctx.onShowStats) ctx.onShowStats(); });
     container.appendChild(statsBtn);
 
