@@ -35,9 +35,7 @@ export function renderUpgrades(root, ctx){
       if(!owned && cost>0 && ctx.meta && ctx.meta.ip < cost) btn.setAttribute('disabled','');
       btn.addEventListener('click',()=>{ if(ctx.buyLegendary) ctx.buyLegendary(c.id); else if(ctx.setMessage) ctx.setMessage('No buy handler'); });
       footer.appendChild(btn);
-      // On the upgrades screen, show Griff using griff1.png (fixed variant)
       const opts = { hideSlot:false, hideCost:true, footer };
-      try{ if(c && c.id === 'griff') opts.imageOverride = './assets/griff1.png'; }catch(e){}
       cardWrap.appendChild(cardTile(c, opts));
       grid.appendChild(cardWrap);
     });
@@ -62,9 +60,7 @@ export function renderUpgrades(root, ctx){
     if(!owned && ctx.meta && ctx.meta.ip < cost) btn.setAttribute('disabled','');
     btn.addEventListener('click',()=>{ if(ctx.buyLegendary) ctx.buyLegendary(s.id); else if(ctx.setMessage) ctx.setMessage('No buy handler'); });
     footer.appendChild(btn);
-    // Summons on the upgrades screen: if a summon id matches griff, use griff1
     const sOpts = { hideSlot:true, hideCost:true, footer };
-    try{ if(s && s.id === 'griff') sOpts.imageOverride = './assets/griff1.png'; }catch(e){}
     wrap.appendChild(cardTile(s, sOpts));
     sGrid.appendChild(wrap);
   });

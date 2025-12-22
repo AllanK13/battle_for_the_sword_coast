@@ -1,5 +1,5 @@
 import { el } from '../renderer.js';
-import { createMeta, saveMeta, saveSlot, loadSlot, deleteSlot } from '../../engine/meta.js';
+import { createMeta, saveMeta, saveSlot, loadSlot, deleteSlot } from '../../engine/arcade_meta.js';
 import { AudioManager } from '../../engine/audio.js';
 
 function kvList(obj){
@@ -111,7 +111,7 @@ export function renderStats(root, ctx){
   container.appendChild(kvList(filteredVictory));
 
   const back = el('button',{class:'btn stats-back-btn', style:'position:absolute;right:12px;top:8px'},['Back']);
-  back.addEventListener('click', ()=>{ if(ctx && ctx.onBack) ctx.onBack(); else if(window.navigate) window.navigate('start'); });
+  back.addEventListener('click', ()=>{ if(ctx && ctx.onBack) ctx.onBack(); else if(window.navigate) window.navigate('arcade_start'); });
 
   // Delete Save button (bottom-left)
   const del = el('button',{class:'btn delete-save-btn'},['Delete Save']);
@@ -126,7 +126,7 @@ export function renderStats(root, ctx){
         Object.entries(fresh).forEach(([k,v])=> ctx.meta[k]=v);
       }
       saveMeta(createMeta());
-      if(ctx && ctx.onBack) ctx.onBack(); else if(window.navigate) window.navigate('start');
+      if(ctx && ctx.onBack) ctx.onBack(); else if(window.navigate) window.navigate('arcade_start');
     }catch(e){ alert('Failed to delete save: '+(e&&e.message)); }
   });
   const footer = el('div',{style:'display:flex;justify-content:flex-start;align-items:center;margin-top:8px'},[]);

@@ -1,13 +1,12 @@
 import { el, cardTile } from '../renderer.js';
+import { navigate } from '../router.js';
 import { AudioManager } from '../../engine/audio.js';
 
 export function renderStart(root, ctx){
   // wrapper to scope start-screen styles
   const container = el('div',{class:'start-screen'},[]);
-  // show game title and centered title logo image
+  // centered title logo image (title header removed per request)
   const titleText = (ctx && ctx.meta && ctx.meta.gameName) ? ctx.meta.gameName : 'Battle for the Sword Coast';
-  const titleEl = el('h1',{class:'game-title'},[titleText]);
-  container.appendChild(titleEl);
   const logo = el('img',{src:'assets/title_logo.png', alt:titleText, class:'title-logo'});
   logo.addEventListener('error', ()=>{ logo.src='assets/title_logo.jpg'; });
   logo.addEventListener('error', ()=>{ logo.style.display='none'; });
@@ -32,6 +31,13 @@ export function renderStart(root, ctx){
     const howtoBtn = el('button',{class:'btn howto-btn floating icon', style:'position:fixed;left:18px;bottom:36px;z-index:10030;height:40px;display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:6px;font-size:16px', title:'How to Play'},[ el('span',{style:'font-size:22px;line-height:1;display:inline-block'},['❓']) ]);
     howtoBtn.addEventListener('click', ()=>{ if(ctx.onShowHowTo) ctx.onShowHowTo(); });
     container.appendChild(howtoBtn);
+
+  // Menu button (top-left) to return to the menu screen
+  try{
+    const menuBtn = el('button',{class:'btn menu-top-btn floating icon', style:'position:fixed;left:18px;top:18px;z-index:10030;height:40px;display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:6px;font-size:16px', title:'Menu'},[ el('span',{style:'font-size:20px;line-height:1;display:inline-block'},['🏠']) ]);
+    menuBtn.addEventListener('click', ()=>{ if(ctx && typeof ctx.onShowMenu === 'function') ctx.onShowMenu(); else navigate('menu'); });
+    container.appendChild(menuBtn);
+  }catch(e){ /* ignore */ }
 
   // Floating music control placed next to the stats button (bottom-right)
   try{
@@ -126,7 +132,7 @@ export function renderStart(root, ctx){
   ipDisplay.appendChild(el('div',{class:'ip-badge'},[String(ipAmount)]));
   info.appendChild(ipDisplay);
   // (Music controls moved to a floating control near the stats button)
-  const slots = (ctx.meta && ctx.meta.partySlots) ? ctx.meta.partySlots : 3;
+  let slots = (ctx.meta && ctx.meta.partySlots) ? ctx.meta.partySlots : 3;
   const slotDisplay = el('div',{class:'slot-badges'},[]);
   const label = el('div',{},['Party Slots: ']);
   const remainingBadge = el('div',{class:'badge remaining-badge'},[String(slots)]);
@@ -141,6 +147,60 @@ export function renderStart(root, ctx){
 
   const cardBox = el('div',{class:'card-grid panel'});
   container.appendChild(cardBox);
+  // Controls: filter by name, sort by field, and show only cards that fit party slots
+  const controls = el('div',{class:'start-controls', style:'display:flex;gap:8px;margin:8px 0;align-items:center;'},[]);
+  // Build custom dropdowns (replace native selects so expanded list can be transparent)
+  function buildCustomSelect(items, initialValue){
+    let value = initialValue;
+    const wrapper = el('div',{class:'custom-select'},[]);
+    const btn = el('button',{class:'custom-select-button', type:'button'},[ items.find(i=>i.value===initialValue)?.label || items[0].label ]);
+    const menu = el('div',{class:'custom-select-menu'},[]);
+    items.forEach(it=>{
+      const item = el('div',{class:'custom-select-item','data-value':it.value, tabindex:0},[it.label]);
+      item.addEventListener('click', ()=>{
+        value = it.value;
+        // update button label
+        try{ btn.textContent = String(it.label); }catch(e){}
+        wrapper.classList.remove('open');
+        if(typeof wrapper._onchange === 'function') wrapper._onchange(value);
+      });
+      item.addEventListener('keydown',(ev)=>{ if(ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); item.click(); } });
+      menu.appendChild(item);
+    });
+    btn.addEventListener('click', (ev)=>{ ev.stopPropagation(); wrapper.classList.toggle('open'); });
+    // close when clicking outside
+    document.addEventListener('click', (ev)=>{ if(!wrapper.contains(ev.target)) wrapper.classList.remove('open'); });
+    wrapper.appendChild(btn);
+    wrapper.appendChild(menu);
+    wrapper.getValue = ()=> value;
+    wrapper.setValue = (v)=>{ const found = items.find(i=>i.value===v); if(found){ value = v; btn.textContent = found.label; } };
+    wrapper.onchange = (fn)=>{ wrapper._onchange = fn; };
+    return wrapper;
+  }
+
+  const filterItems = [
+    {value:'all', label:'Slots: All'},
+    {value:'1', label:'Slots: 1'},
+    {value:'2', label:'Slots: 2'},
+    {value:'3', label:'Slots: 3'},
+    {value:'4', label:'Slots: 4'},
+    {value:'5', label:'Slots: 5'}
+  ];
+  const sortItems = [
+    {value:'slot_cost:asc', label:'Sort: Slot Cost (asc)'},
+    {value:'slot_cost:desc', label:'Sort: Slot Cost (desc)'},
+    {value:'name:asc', label:'Sort: Name (asc)'},
+    {value:'name:desc', label:'Sort: Name (desc)'},
+    {value:'hp:asc', label:'Sort: HP (asc)'},
+    {value:'hp:desc', label:'Sort: HP (desc)'},
+  ];
+  const filterWidget = buildCustomSelect(filterItems, 'all');
+  const sortWidget = buildCustomSelect(sortItems, 'name:asc');
+  filterWidget.onchange(()=> renderCards());
+  sortWidget.onchange(()=> renderCards());
+  controls.appendChild(filterWidget);
+  controls.appendChild(sortWidget);
+  container.insertBefore(controls, cardBox);
   const selected = new Set();
   const cardsById = {};
   function getUsedSlots(){
@@ -166,36 +226,85 @@ export function renderStart(root, ctx){
   const poolCards = [];
   (ctx.data.cards||[]).forEach(c=> poolCards.push(c));
   (ctx.data.legendary||[]).forEach(l=>{ if(l && typeof l.hp === 'number') poolCards.push(l); });
-  poolCards.filter(c => c && (c.starter || ownedIds.includes(c.id))).forEach(c=>{
-    cardsById[c.id] = c;
-    const opts = { hideCost: true, slotFirst: true };
-    // If this card is Griff, pick a random griff1..griff7 for the start screen
-    try{ if(c && c.id === 'griff'){ const n = Math.floor(Math.random()*7)+1; opts.imageOverride = `./assets/griff${n}.png?v=${Math.floor(Math.random()*1000000)}`; } }catch(e){}
-    const tile = cardTile(c, opts);
-    tile.style.cursor='pointer';
-    tile.addEventListener('click',()=>{
-      if(selected.has(c.id)){
-        selected.delete(c.id);
-        tile.classList.remove('selected');
-        updateSlotDisplay();
-        return;
-      }
-      const used = getUsedSlots();
-      const cost = (typeof c.slot_cost !== 'undefined') ? Number(c.slot_cost) : 1;
-      if(isNaN(cost) || cost < 0){
-        if(ctx.setMessage) ctx.setMessage('Invalid slot cost for card');
-        return;
-      }
-      if(used + cost > slots){
-        if(ctx.setMessage) ctx.setMessage('Not enough party slots for '+c.name);
-        return;
-      }
-      selected.add(c.id);
-      tile.classList.add('selected');
-      updateSlotDisplay();
+  // renderCards: applies filters/sorting then renders tiles into cardBox
+  function renderCards(){
+    // clear grid
+    cardBox.innerHTML = '';
+    const filterMode = (typeof filterWidget !== 'undefined' ? filterWidget.getValue() : 'all') || 'all';
+    const sortRaw = (typeof sortWidget !== 'undefined' ? sortWidget.getValue() : 'name:asc') || 'name:asc';
+    const parts = String(sortRaw).split(':');
+    const sortKey = parts[0] || 'name';
+    const sortDir = (parts[1] || 'asc').toLowerCase();
+    const fitOnly = false;
+    let visible = poolCards.filter(c => c && (c.starter || ownedIds.includes(c.id)));
+    // apply dropdown filter by slot cost (match exactly the selected number)
+    if(filterMode && filterMode !== 'all'){
+      const targetSlots = Number(filterMode) || 0;
+      visible = visible.filter(c => {
+        const cost = (c && typeof c.slot_cost !== 'undefined') ? Number(c.slot_cost) : 1;
+        return !isNaN(cost) && cost === targetSlots;
+      });
+    }
+    // apply fit-only filter
+    const filtered = visible.filter(c => {
+      if(!c) return false;
+      if(fitOnly){ const cost = (c && typeof c.slot_cost !== 'undefined') ? Number(c.slot_cost) : 1; if(isNaN(cost) || cost > slots) return false; }
+      return true;
     });
-    cardBox.appendChild(tile);
-  });
+    // sort
+    filtered.sort((a,b)=>{
+      if(sortKey === 'name'){
+        const cmp = String((a.name||'')).localeCompare(String((b.name||'')));
+        return sortDir === 'desc' ? -cmp : cmp;
+      }
+      if(sortKey === 'hp'){
+        const diff = (Number(a.hp)||0) - (Number(b.hp)||0);
+        return sortDir === 'desc' ? -diff : diff;
+      }
+      if(sortKey === 'slot_cost'){
+        const diff = (Number(a.slot_cost)||1) - (Number(b.slot_cost)||1);
+        return sortDir === 'desc' ? -diff : diff;
+      }
+      return 0;
+    });
+    // render
+    filtered.forEach(c=>{
+      cardsById[c.id] = c;
+      const opts = { hideCost: true, slotFirst: true };
+      try{
+        if(c && c.id === 'griff'){
+          if(!ctx.meta) ctx.meta = {};
+          let v = ctx.meta.griffVariant;
+          try{ if(!v && typeof localStorage !== 'undefined'){ const ls = localStorage.getItem('griffVariant'); if(ls) v = Number(ls); } }catch(e){}
+          if(!v){ v = Math.floor(Math.random()*7)+1; ctx.meta.griffVariant = v; try{ if(typeof localStorage !== 'undefined') localStorage.setItem('griffVariant', String(v)); }catch(e){} }
+          opts.imageOverride = './assets/griff' + v + '.png';
+        }
+      }catch(e){}
+      const tile = cardTile(c, opts);
+      tile.style.cursor='pointer';
+      if(selected.has(c.id)) tile.classList.add('selected');
+      tile.addEventListener('click',()=>{
+        if(selected.has(c.id)){
+          selected.delete(c.id);
+          tile.classList.remove('selected');
+          updateSlotDisplay();
+          return;
+        }
+        const used = getUsedSlots();
+        const cost = (typeof c.slot_cost !== 'undefined') ? Number(c.slot_cost) : 1;
+        if(isNaN(cost) || cost < 0){ if(ctx.setMessage) ctx.setMessage('Invalid slot cost for card'); return; }
+        if(used + cost > slots){ if(ctx.setMessage) ctx.setMessage('Not enough party slots for '+c.name); return; }
+        selected.add(c.id);
+        tile.classList.add('selected');
+        updateSlotDisplay();
+      });
+      cardBox.appendChild(tile);
+    });
+  }
+  // wire controls (custom widgets already call `renderCards` on change)
+  // Note: 'Fits party slots' filter removed; renderCards will not filter by fit-only.
+  // initial render
+  renderCards();
 
   const startBtn = el('button',{class:'btn start-run-btn'},['Venture Forth']);
   // disable start until at least one card selected

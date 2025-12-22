@@ -1,7 +1,7 @@
 import { el, cardTile } from '../renderer.js';
 import { navigate } from '../router.js';
 import { AudioManager } from '../../engine/audio.js';
-import { saveMeta } from '../../engine/meta.js';
+import { saveMeta } from '../../engine/arcade_meta.js';
 
 function slotNode(slotObj, idx, handlers={}, highlight=false, targetHighlight=false, ctx=null){
   const container = el('div',{class:'card-wrap panel'});
@@ -22,10 +22,24 @@ function slotNode(slotObj, idx, handlers={}, highlight=false, targetHighlight=fa
   // if this hero is Griff and the encounter selected a variant, pass imageOverride
   try{
     const id = (slotObj.base && slotObj.base.id) ? slotObj.base.id : null;
-    // Choose a random griff variant image for display (griff1..griff7)
+    // For Griff, reuse a single persisted variant so re-renders (e.g. button presses)
+    // don't change the image. Prefer ctx.meta.griffVariant, then localStorage,
+    // then any encounter-provided _griffImage, otherwise pick one once and store it.
     if(id === 'griff'){
-      const n = Math.floor(Math.random() * 7) + 1;
-      opts.imageOverride = `./assets/griff${n}.png?v=${Math.floor(Math.random()*1000000)}`;
+      // Prefer encounter-level variant (set when the battle starts) so image
+      // remains stable for the duration of the encounter. Fall back to
+      // meta/localStorage only if encounter variant is not present.
+      let v = null;
+      try{ if(ctx && ctx.encounter && typeof ctx.encounter._griffVariant === 'number') v = ctx.encounter._griffVariant; }catch(e){}
+      try{ if(!v && ctx && ctx.meta && ctx.meta.griffVariant) v = ctx.meta.griffVariant; }catch(e){}
+      try{ if(!v && typeof localStorage !== 'undefined'){ const ls = localStorage.getItem('griffVariant'); if(ls) v = Number(ls); } }catch(e){}
+      try{ if(!v && ctx && ctx.encounter && ctx.encounter._griffImage){ const m = String(ctx.encounter._griffImage).match(/griff(\d+)\.png/i); if(m && m[1]) v = Number(m[1]); } }catch(e){}
+      if(!v){
+        // As a last resort, pick one for this encounter and persist it on the encounter
+        v = Math.floor(Math.random() * 7) + 1;
+        try{ if(ctx && ctx.encounter) ctx.encounter._griffVariant = v; }catch(e){}
+      }
+      opts.imageOverride = './assets/griff' + v + '.png';
     }
   }catch(e){}
   const tile = cardTile(slotObj.base, opts);
@@ -98,7 +112,7 @@ export function renderBattle(root, ctx){
     try{ if(ctx && ctx.meta) { ctx.meta.summonUsage = {}; saveMeta(ctx.meta); } }catch(e){ console.debug('GiveUp: saveMeta failed', e); }
     // attempt immediate navigation, then fall back to forced page load if that fails
     try{
-      try{ navigate('start'); console.debug('GiveUp: navigate(start) invoked'); }
+      try{ navigate('arcade_start'); console.debug('GiveUp: navigate(arcade_start) invoked'); }
       catch(e){ console.debug('GiveUp: navigate threw', e); }
       // schedule forced navigation fallbacks in case route navigation doesn't take effect
       setTimeout(()=>{
@@ -279,7 +293,9 @@ export function renderBattle(root, ctx){
       const btn = el('button',{class:'btn'},[ btnLabel ]);
       if(used || usedForRun || cd>0) btn.setAttribute('disabled','');
       btn.addEventListener('click',()=>{
-        const needsTarget = /one target|target/i.test(s.ability||'') || s.id === 'blackrazor';
+        // prefer structured ability definition on summons too, fallback to legacy
+        const sPrimary = (s && Array.isArray(s.abilities) && s.abilities.length>0) ? (s.abilities.find(a=>a.primary) || s.abilities[0]) : null;
+        const needsTarget = /one target|target/i.test((sPrimary && sPrimary.ability) ? sPrimary.ability : (s.ability||'')) || s.id === 'blackrazor';
         if(needsTarget){
           ctx.pendingSummon = { id: s.id, name: s.name };
           if(ctx.setMessage) ctx.setMessage('Click a space to target '+s.name);
@@ -361,7 +377,8 @@ export function renderBattle(root, ctx){
         if(ctx.encounter.ap < 1) { if(ctx.setMessage) ctx.setMessage('Not enough AP'); return; }
         // detect explicit actionType if present
         const hero = ctx.encounter.playfield[idx];
-        const actionType = (hero && hero.base && hero.base.actionType) ? hero.base.actionType : null;
+        const primary = (hero && hero.base) ? ((Array.isArray(hero.base.abilities) && hero.base.abilities.length>0) ? (hero.base.abilities.find(a=>a.primary) || hero.base.abilities[0]) : null) : null;
+        const actionType = (primary && primary.actionType) ? primary.actionType : (hero && hero.base && hero.base.actionType) ? hero.base.actionType : null;
         if(actionType === 'support'){
           // Willis requires selecting a target to protect
           if(hero && hero.base && hero.base.id === 'willis'){
@@ -377,7 +394,7 @@ export function renderBattle(root, ctx){
           return;
         }
         // determine if this hero's action requires a target (common for single-target heals)
-        const ability = (hero && hero.base && hero.base.ability) ? hero.base.ability.toLowerCase() : '';
+        const ability = (primary && primary.ability) ? String(primary.ability).toLowerCase() : ((hero && hero.base && hero.base.ability) ? hero.base.ability.toLowerCase() : '');
         const isHeal = /heal|cure|restore|regen|heals?/i.test(ability) || actionType === 'heal';
         const needsTarget = isHeal && /one target|one creature|target|other|ally/i.test(ability);
         if(needsTarget){

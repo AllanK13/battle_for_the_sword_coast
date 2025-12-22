@@ -13,6 +13,43 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 .card{background:linear-gradient(180deg,#0d2a3b,#023047);padding:12px;border-radius:12px;color:white;box-sizing:border-box;width:198px;height:342px;display:flex;flex-direction:column}
 .card-wrap{width:198px;box-sizing:border-box;display:flex;flex-direction:column}
 .btn{background:var(--accent);color:#032; border:none;padding:10px 14px;border-radius:6px;cursor:pointer}
+/* Styled select dropdowns used in the start screen controls */
+.styled-select{
+  appearance:none;
+  -webkit-appearance:none;
+  background:linear-gradient(180deg,#07303f,#03222b);
+  color:#ffffff;
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.06);
+  box-shadow:0 6px 18px rgba(0,0,0,0.45);
+  font-weight:700;
+  min-width:140px;
+  background-image: linear-gradient(45deg, transparent 50%, rgba(230,238,248,0.95) 50%), linear-gradient(135deg, rgba(230,238,248,0.95) 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px);
+  background-size:6px 6px,6px 6px;
+  background-repeat:no-repeat;
+}
+.styled-select:focus{ outline:3px solid rgba(134,239,172,0.12); }
+/* Attempt to render the dropdown options list on a transparent background.
+   Note: native option rendering is browser-controlled and may ignore styling.
+   This is a best-effort CSS override. */
+.styled-select option,
+.styled-select optgroup{
+  background: transparent !important;
+  color: inherit !important;
+}
+/* WebKit/Chromium expand arrow cleanup */
+.styled-select::-ms-expand{ background: transparent; }
+
+/* Custom select (JS-driven) */
+.custom-select{ position:relative; display:inline-block }
+.custom-select-button{ background:linear-gradient(180deg,#07303f,#03222b); color:#e6eef8; padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); cursor:pointer; font-weight:700; min-width:140px; }
+.custom-select-button:focus{ outline:3px solid rgba(134,239,172,0.12); }
+.custom-select-menu{ position:absolute; top:calc(100% + 6px); left:0; min-width:160px; background:#680f0f; box-shadow:0 10px 30px rgba(0,0,0,0.6); border-radius:8px; overflow:hidden; display:none; z-index:10050 }
+.custom-select.open .custom-select-menu{ display:block }
+.custom-select-item{ padding:8px 12px; cursor:pointer; color:#e6eef8; white-space:nowrap }
+.custom-select-item:hover{ background:rgba(0,0,0,0.12) }
 /* Prominent stats button used on the start screen */
 .stats-btn{
   background: linear-gradient(180deg,#00ff40,#0c491e);
@@ -1229,3 +1266,39 @@ body.dragging-active .card-wrap.panel{
   outline:4px dashed rgba(134,239,172,0.95);
   box-shadow:0 14px 30px rgba(16,185,129,0.12);
 }
+
+/* Menu screen: top-level entry with logo and large mode buttons */
+.menu-screen{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:30px; min-height:60vh }
+.menu-logo{ max-width:560px; width:70%; height:auto; display:block; margin:0 auto }
+/* menu-title removed — menu now uses the shared .game-title styles */
+.menu-buttons{ display:flex; flex-direction:column; gap:14px; width:360px; max-width:92% }
+.menu-button{ padding:18px 22px; font-size:20px; font-weight:900; border-radius:12px; display:flex; justify-content:center; align-items:center; gap:8px }
+.menu-button:not(.disabled):hover{ transform:translateY(-3px); box-shadow:0 14px 36px rgba(0,0,0,0.36) }
+.menu-button.disabled, .menu-button[disabled]{ background:linear-gradient(180deg,#374151,#1f2937); color:#9ca3af; cursor:not-allowed; box-shadow:none; opacity:0.95 }
+
+/* Small badge shown on disabled menu modes */
+.menu-button{ position:relative }
+.coming-soon-badge{ position:absolute; right:12px; top:8px; background:rgba(0,0,0,0.6); color:#cbd5e1; padding:6px 8px; border-radius:8px; font-size:12px; font-weight:800; pointer-events:none; text-transform:uppercase; letter-spacing:0.6px }
+
+/* Arcade button styling */
+.menu-button.arcade{ background:linear-gradient(180deg,#60a5fa,#2563eb); color:#fff; padding:20px 24px; font-size:22px; font-weight:900; border-radius:14px; border:2px solid rgba(0,0,0,0.2); box-shadow: 0 18px 44px rgba(37,99,235,0.28); display:flex; align-items:center; justify-content:center; gap:10px }
+.menu-button.arcade:hover{ transform:translateY(-4px); box-shadow: 0 24px 56px rgba(37,99,235,0.34); filter:brightness(1.03) }
+.menu-btn-icon-left{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.12); font-size:18px; margin-right:8px }
+
+/* Adventure & Campaign styling (muted when disabled but visually distinct) */
+.menu-button.adventure{ background:linear-gradient(180deg,#f59e0b,#b45309); color:#1f2937; padding:18px 22px; font-size:20px; font-weight:900; border-radius:12px; border:2px solid rgba(0,0,0,0.12); box-shadow: 0 12px 34px rgba(245,158,11,0.18); display:flex; align-items:center; justify-content:center; gap:10px }
+.menu-button.adventure:hover{ transform:translateY(-3px); box-shadow: 0 18px 44px rgba(245,158,11,0.22) }
+.menu-button.campaign{ background:linear-gradient(180deg,#8b5cf6,#6d28d9); color:#fff; padding:18px 22px; font-size:20px; font-weight:900; border-radius:12px; border:2px solid rgba(0,0,0,0.12); box-shadow: 0 12px 34px rgba(107,70,193,0.18); display:flex; align-items:center; justify-content:center; gap:10px }
+.menu-button.campaign:hover{ transform:translateY(-3px); box-shadow: 0 18px 44px rgba(107,70,193,0.22) }
+
+/* Keep 'disabled' visual but allow distinct hue using a more specific selector */
+.menu-button.adventure.disabled, .menu-button.adventure[disabled]{ background:linear-gradient(180deg,#7c4a05,#4b2b06); color:#f3e8d8; opacity:0.95 }
+.menu-button.campaign.disabled, .menu-button.campaign[disabled]{ background:linear-gradient(180deg,#5b21b6,#3b0766); color:#efe7ff; opacity:0.95 }
+
+/* Top-left Menu button styling (fixed, floating icon) */
+.menu-top-btn{ background: linear-gradient(180deg,#fbbf24,#f97316); color:#082; border:none; padding:8px 12px; border-radius:10px; font-weight:900; box-shadow:0 12px 28px rgba(0,0,0,0.28); cursor:pointer }
+.menu-top-btn:hover{ transform:translateY(-2px); box-shadow:0 18px 36px rgba(0,0,0,0.36); filter:brightness(1.02) }
+.menu-top-btn.icon{ padding:8px; min-width:44px; height:44px; display:flex; align-items:center; justify-content:center }
+.menu-top-btn .menu-btn-icon-left{ width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,0.12); font-size:16px; margin-right:6px }
+
+

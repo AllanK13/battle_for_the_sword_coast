@@ -14,7 +14,7 @@ export function renderHowTo(root, ctx){
   ];
 
   const rightSections = [
-    { title: '🗡️ Actions Explained', body: ['Ability: Use a hero’s special action.', 'Dodge: Reduce incoming damage this turn.', 'Replace: Remove a hero to make room for another.'] },
+    { title: '🗡️ Actions Explained', body: ['Ability: Use a hero’s special action.', 'Dodge: Harder to hit from attacks.', 'Replace: Remove a hero to make room for another.'] },
     { title: '🧙 Summons', body: ['Summons are always available. They cost no AP. Each summon has restrictions on how often it can be used.'] },
     { title: '👹 Enemies', body: ['Each enemy has multiple attacks. On their turn, the enemy chooses one attack at random. Enemies grow more dangerous as you progress.'] },
     { title: '🧠 Your Deck', body: ['You always have access to all cards in your deck. Cards take up party slots. You start with 3 slots.'] },
@@ -63,7 +63,7 @@ export function renderHowTo(root, ctx){
   helpPanel.appendChild(footerQuote);
 
   const back = el('button',{class:'btn stats-back-btn', style:'position:absolute;right:12px;top:8px'},['Back']);
-  back.addEventListener('click', ()=>{ if(ctx && ctx.onBack) ctx.onBack(); else if(window.navigate) window.navigate('start'); });
+  back.addEventListener('click', ()=>{ if(ctx && ctx.onBack) ctx.onBack(); else if(window.navigate) window.navigate('arcade_start'); });
 
   container.appendChild(helpPanel);
   container.appendChild(back);
