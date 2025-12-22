@@ -7,7 +7,7 @@ export function createMeta(){
     totalIpEarned: 0,
     legendaryUnlocked: false,
     // enable debug UI when true
-    debugEnabled: true,
+    debugEnabled: false,
     partySlots: 3,
     // default owned starters for a fresh save
     ownedCards: ['meepo','cree_kid','erky_timbers'],
