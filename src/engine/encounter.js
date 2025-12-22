@@ -21,9 +21,10 @@ export function startEncounter(enemyDef, deck, rng, opts={}){
   };
   // Choose a random Griff image variant for this encounter (if needed by UI).
   try{
-    const griffVariants = ['assets/griff1.png','assets/griff2.png','assets/griff3.png','assets/griff4.png','assets/griff5.png','assets/griff6.png','assets/griff7.png'];
-    state._griffImage = griffVariants[Math.floor(Math.random() * griffVariants.length)];
-  }catch(e){ state._griffImage = null; }
+    const v = Math.floor(Math.random() * 7) + 1;
+    state._griffVariant = v;
+    state._griffImage = './assets/griff' + v + '.png';
+  }catch(e){ state._griffVariant = null; state._griffImage = null; }
   // All character cards should already be provided in `deck.hand` by the deck builder.
   // Drawing has been removed — no action needed here.
   return state;
@@ -42,10 +43,49 @@ function _selectSingleTargetIndex(state, rng){
 }
 
 function parseDamageFromAbility(card){
-  const nums = (card.ability||"").match(/(\d+)/g);
+  // `card` may be either a card object or an ability-like object.
+  const abilityObj = (card && typeof card === 'object' && (card.ability || card.abilities)) ? card : {};
+  const text = (abilityObj.ability || (card && card.ability) || "") + "";
+  const nums = (text||"").match(/(\d+)/g);
   if(!nums || nums.length === 0) return 0;
   // prefer the last numeric value in the ability text (handles "Cure Wounds (4th level): Restore 5 HP")
   return Number(nums[nums.length-1]);
+}
+
+// Helper to extract the primary ability object from a card definition.
+function getPrimaryAbility(obj){
+  if(!obj) return {};
+  try{
+    if(Array.isArray(obj.abilities) && obj.abilities.length>0){
+      return obj.abilities.find(a=>a.primary) || obj.abilities[0] || {};
+    }
+  }catch(e){}
+  // fallback to legacy top-level fields if present
+  return {
+    ability: obj.ability,
+    actionType: obj.actionType,
+    hitChance: obj.hitChance,
+    critChance: obj.critChance,
+    type: obj.type
+  };
+}
+
+// RNG helpers: unified roll functions that prefer a seeded RNG on state
+function _rngRoll(state){
+  try{
+    if(state && state.rng && typeof state.rng.rand === 'function') return state.rng.rand();
+  }catch(e){}
+  return Math.random();
+}
+
+function checkHit(state, chance){
+  const c = (typeof chance === 'number') ? chance : 1.0;
+  return _rngRoll(state) < c;
+}
+
+function checkCrit(state, chance){
+  const c = (typeof chance === 'number') ? chance : 0.0;
+  return _rngRoll(state) < c;
 }
 
 // Healer helper: heals a single target or the whole party depending on
@@ -54,8 +94,9 @@ function parseDamageFromAbility(card){
 function resolveHeal(state, slotIndex, amount, targetIndex=null){
   const hero = state.playfield[slotIndex];
   if(!hero) return { success:false, reason:'no hero' };
-  const abilityText = (hero.base && hero.base.ability) ? hero.base.ability.toLowerCase() : '';
-  const isParty = (targetIndex === 'all') || /all|party|everyone|entire/i.test(abilityText) || (hero.base && hero.base.actionTarget === 'party');
+  const primary = getPrimaryAbility(hero.base);
+  const abilityText = (primary && primary.ability) ? String(primary.ability).toLowerCase() : '';
+  const isParty = (targetIndex === 'all') || /all|party|everyone|entire/i.test(abilityText) || (primary && primary.actionTarget === 'party') || (hero.base && hero.base.actionTarget === 'party');
   const healAmount = Number(amount) || 1;
   if(isParty){
     const healedSlots = [];
@@ -191,14 +232,26 @@ export function playHeroAttack(state, slotIndex){
   if(state.ap <= 0) return { success:false, reason:'no AP' };
   const hero = state.playfield[slotIndex];
   if(!hero) return { success:false, reason:'no hero' };
-  const baseDmg = parseDamageFromAbility(hero.base);
+  const primary = getPrimaryAbility(hero.base);
+  const baseDmg = parseDamageFromAbility(primary);
   const mult = state.nextAttackMultiplier || 1;
-  const dmg = Math.floor(baseDmg * mult);
-  state.enemy.hp -= dmg;
-  // reset multiplier if it was applied
-  if(mult !== 1) state.nextAttackMultiplier = 1;
+  // read optional hit/crit chances from the hero card metadata
+  const hitChance = (primary && typeof primary.hitChance === 'number') ? primary.hitChance : 1.0;
+  const critChance = (primary && typeof primary.critChance === 'number') ? primary.critChance : 0.0;
+  // consume AP for the attack attempt
   state.ap -= 1;
-  return { success:true, type: 'attack', dmg, enemyHp: state.enemy.hp };
+  // roll to hit
+  if(!checkHit(state, hitChance)){
+    // attack missed — do not modify enemy HP
+    if(mult !== 1) state.nextAttackMultiplier = 1;
+    return { success:true, type: 'attack', dmg: 0, enemyHp: state.enemy.hp, missed: true };
+  }
+  // hit: roll for crit
+  const isCrit = checkCrit(state, critChance);
+  const dmg = Math.floor(baseDmg * mult * (isCrit ? 2 : 1));
+  state.enemy.hp = (state.enemy.hp || 0) - dmg;
+  if(mult !== 1) state.nextAttackMultiplier = 1;
+  return { success:true, type: 'attack', dmg, enemyHp: state.enemy.hp, crit: isCrit, baseDmg };
 }
 
 export function playHeroAction(state, slotIndex, targetIndex=null){
@@ -206,13 +259,14 @@ export function playHeroAction(state, slotIndex, targetIndex=null){
   if(state.ap <= 0) return { success:false, reason:'no AP' };
   const hero = state.playfield[slotIndex];
   if(!hero) return { success:false, reason:'no hero' };
-  const ability = (hero.base && hero.base.ability) ? hero.base.ability.toLowerCase() : '';
-  const amount = parseDamageFromAbility(hero.base);
+  const primary = getPrimaryAbility(hero.base);
+  const ability = (primary && primary.ability) ? String(primary.ability).toLowerCase() : '';
+  const amount = parseDamageFromAbility(primary);
   // normalize id for legendaries that may not have `base`
   const hid = (hero.base && hero.base.id) ? hero.base.id : hero.cardId;
   // Determine explicit action type: prefer `actionType` then parse ability text.
   // Normalize to one of: 'dps', 'healer', 'support'. Default -> 'dps'.
-  let actionType = (hero.base && hero.base.actionType) ? String(hero.base.actionType).toLowerCase() : null;
+  let actionType = (primary && primary.actionType) ? String(primary.actionType).toLowerCase() : null;
   if(!actionType){
     if(/heal|cure|restore|regen|heals?/i.test(ability)) actionType = 'healer';
     else actionType = 'dps';
@@ -457,11 +511,54 @@ export function enemyAct(state){
     }
     // Use centralized handlers for both AOE and single-target attacks
     if(type === 'aoe'){
+      // AoE always hits per design — no hit/crit checks
       events.push(...resolveAoEAttack(state, baseDmg, atkIndex, attackName));
     } else if(type === 'multi'){
-      events.push(...resolveMultiAttack(state, baseDmg, atkIndex, attackName));
+      // Multi attacks: perform two independent single-target sub-attacks,
+      // each with its own hit and crit roll (if provided on the attack metadata).
+      const hitChance = (atk && typeof atk.hitChance === 'number') ? atk.hitChance : 1.0;
+      const critChance = (atk && typeof atk.critChance === 'number') ? atk.critChance : 0.0;
+      for(let k=0;k<2;k++){
+        if(!checkHit(state, hitChance)){
+          const idx = _selectSingleTargetIndex(state, state.rng);
+          if(idx !== -1 && state.playfield[idx]){
+            const h = state.playfield[idx];
+            const ev = { type:'hit', slot: idx, dmg: 0, tempTaken: 0, hpTaken: 0, remainingHp: h.hp, died:false, heroName: h.base && h.base.name ? h.base.name : null };
+            ev.attackType = 'multi';
+            if(typeof atkIndex === 'number') ev.attack = atkIndex+1;
+            if(attackName) ev.attackName = attackName;
+            ev.missed = true;
+            events.push(ev);
+          }
+        } else {
+          const isCrit = checkCrit(state, critChance);
+          const usedDmg = isCrit ? Math.floor(baseDmg * 2) : baseDmg;
+          const evs = resolveSingleTargetAttack(state, usedDmg, atkIndex, attackName);
+          evs.forEach(ev=>{ ev.attackType = 'multi'; ev.crit = isCrit; ev.baseDmg = baseDmg; events.push(ev); });
+        }
+      }
     } else {
-      events.push(...resolveSingleTargetAttack(state, baseDmg, atkIndex, attackName));
+      // Single-target attack: roll hit first; if miss, emit a missed hit event without
+      // mutating hero HP. If hit, roll crit and apply doubled damage on crit.
+      const hitChance = (atk && typeof atk.hitChance === 'number') ? atk.hitChance : 1.0;
+      const critChance = (atk && typeof atk.critChance === 'number') ? atk.critChance : 0.0;
+      if(!checkHit(state, hitChance)){
+        const idx = _selectSingleTargetIndex(state, state.rng);
+        if(idx !== -1 && state.playfield[idx]){
+          const h = state.playfield[idx];
+          const ev = { type:'hit', slot: idx, dmg: 0, tempTaken: 0, hpTaken: 0, remainingHp: h.hp, died:false, heroName: h.base && h.base.name ? h.base.name : null };
+          ev.attackType = 'single';
+          if(typeof atkIndex === 'number') ev.attack = atkIndex+1;
+          if(attackName) ev.attackName = attackName;
+          ev.missed = true;
+          events.push(ev);
+        }
+      } else {
+        const isCrit = checkCrit(state, critChance);
+        const usedDmg = isCrit ? Math.floor(baseDmg * 2) : baseDmg;
+        const evs = resolveSingleTargetAttack(state, usedDmg, atkIndex, attackName);
+        evs.forEach(ev=>{ ev.crit = isCrit; ev.baseDmg = baseDmg; events.push(ev); });
+      }
     }
     // after performing the attack(s), fall through to common end-of-turn housekeeping
     // (events have been populated above)

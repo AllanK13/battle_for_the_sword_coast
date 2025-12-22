@@ -13,6 +13,43 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 .card{background:linear-gradient(180deg,#0d2a3b,#023047);padding:12px;border-radius:12px;color:white;box-sizing:border-box;width:198px;height:342px;display:flex;flex-direction:column}
 .card-wrap{width:198px;box-sizing:border-box;display:flex;flex-direction:column}
 .btn{background:var(--accent);color:#032; border:none;padding:10px 14px;border-radius:6px;cursor:pointer}
+/* Styled select dropdowns used in the start screen controls */
+.styled-select{
+  appearance:none;
+  -webkit-appearance:none;
+  background:linear-gradient(180deg,#07303f,#03222b);
+  color:#ffffff;
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.06);
+  box-shadow:0 6px 18px rgba(0,0,0,0.45);
+  font-weight:700;
+  min-width:140px;
+  background-image: linear-gradient(45deg, transparent 50%, rgba(230,238,248,0.95) 50%), linear-gradient(135deg, rgba(230,238,248,0.95) 50%, transparent 50%);
+  background-position: calc(100% - 14px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px);
+  background-size:6px 6px,6px 6px;
+  background-repeat:no-repeat;
+}
+.styled-select:focus{ outline:3px solid rgba(134,239,172,0.12); }
+/* Attempt to render the dropdown options list on a transparent background.
+   Note: native option rendering is browser-controlled and may ignore styling.
+   This is a best-effort CSS override. */
+.styled-select option,
+.styled-select optgroup{
+  background: transparent !important;
+  color: inherit !important;
+}
+/* WebKit/Chromium expand arrow cleanup */
+.styled-select::-ms-expand{ background: transparent; }
+
+/* Custom select (JS-driven) */
+.custom-select{ position:relative; display:inline-block }
+.custom-select-button{ background:linear-gradient(180deg,#07303f,#03222b); color:#e6eef8; padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); cursor:pointer; font-weight:700; min-width:140px; }
+.custom-select-button:focus{ outline:3px solid rgba(134,239,172,0.12); }
+.custom-select-menu{ position:absolute; top:calc(100% + 6px); left:0; min-width:160px; background:#680f0f; box-shadow:0 10px 30px rgba(0,0,0,0.6); border-radius:8px; overflow:hidden; display:none; z-index:10050 }
+.custom-select.open .custom-select-menu{ display:block }
+.custom-select-item{ padding:8px 12px; cursor:pointer; color:#e6eef8; white-space:nowrap }
+.custom-select-item:hover{ background:rgba(0,0,0,0.12) }
 /* Prominent stats button used on the start screen */
 .stats-btn{
   background: linear-gradient(180deg,#00ff40,#0c491e);

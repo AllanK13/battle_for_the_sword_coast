@@ -82,7 +82,11 @@ export function cardTile(item, opts={}){
     if(typeof item.slot_cost !== 'undefined' && !opts.hideSlot) stats.appendChild(el('div',{class:'muted card-stat'},['Party Slots: '+item.slot_cost]));
   }
   if(!opts.hideCost && typeof item.ip_cost !== 'undefined') stats.appendChild(el('div',{class:'muted card-stat'},['Cost: '+item.ip_cost]));
-  if(item.ability) stats.appendChild(el('div',{class:'muted card-desc'},[item.ability]));
+  // Prefer structured `abilities[]` primary entry; fall back to legacy `ability` string
+  let primary = null;
+  try{ if(item && Array.isArray(item.abilities) && item.abilities.length>0) primary = item.abilities.find(a=>a.primary) || item.abilities[0]; }catch(e){}
+  const abilityText = (primary && primary.ability) ? primary.ability : (item.ability || null);
+  if(abilityText) stats.appendChild(el('div',{class:'muted card-desc'},[abilityText]));
   d.appendChild(stats);
   // if caller provided a footer element, append it inside the card so it stays anchored
   if(opts.footer){

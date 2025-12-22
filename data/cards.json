@@ -3,8 +3,16 @@
     "name": "Meepo",
     "type": "DPS",
     "hp": 2.0,
-    "ability": "Whip: 1 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Whip: 1 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 1,
     "slot_cost": 1.0,
     "ip_cost": 0,
@@ -15,8 +23,16 @@
     "name": "Erky Timbers",
     "type": "Healer",
     "hp": 3.0,
-    "ability": "Cure Wounds: Heal one creature for 1 HP",
-    "actionType": "heal",
+    "abilities": [
+      {
+        "type": "Healer",
+        "ability": "Cure Wounds: Heal one creature for 1 HP",
+        "actionType": "heal",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 1,
     "slot_cost": 1.0,
     "ip_cost": 0,
@@ -27,8 +43,16 @@
     "name": "Cree (child)",
     "type": "DPS",
     "hp": 2.0,
-    "ability": "Shortsword: 1 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Shortsword: 1 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 1,
     "slot_cost": 1.0,
     "ip_cost": 0,
@@ -39,8 +63,16 @@
     "name": "Whiph",
     "type": "DPS",
     "hp": 3.0,
-    "ability": "Booming Blade: 2 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Booming Blade: 2 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 1,
     "slot_cost": 1.0,
     "ip_cost": 5,
@@ -51,8 +83,16 @@
     "name": "Ferrek",
     "type": "DPS",
     "hp": 3.0,
-    "ability": "Polearm Master: 2 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Polearm Master: 2 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 1,
     "slot_cost": 1.0,
     "ip_cost": 5,
@@ -63,8 +103,16 @@
     "name": "Piter",
     "type": "Support",
     "hp": 4.0,
-    "ability": "Help: Automatically targeted by next single target attack",
-    "actionType": "support",
+    "abilities": [
+      {
+        "type": "Support",
+        "ability": "Help: Automatically targeted by next single target attack",
+        "actionType": "support",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 1,
     "slot_cost": 1.0,
     "ip_cost": 5,
@@ -75,8 +123,16 @@
     "name": "Shalendra",
     "type": "Support",
     "hp": 5.0,
-    "ability": "Refresh Volo's power",
-    "actionType": "support",
+    "abilities": [
+      {
+        "type": "Support",
+        "ability": "Refresh Volo's power",
+        "actionType": "support",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 1,
     "slot_cost": 1.0,
     "ip_cost": 5,
@@ -87,8 +143,16 @@
     "name": "Cree (teen)",
     "type": "DPS",
     "hp": 6.0,
-    "ability": "Greatsword: 4 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Greatsword: 4 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 2,
     "slot_cost": 2.0,
     "ip_cost": 10,
@@ -99,8 +163,16 @@
     "name": "Gnolls",
     "type": "DPS",
     "hp": 6.0,
-    "ability": "Volley: 4 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Volley: 4 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 2,
     "slot_cost": 2.0,
     "ip_cost": 10,
@@ -111,8 +183,16 @@
     "name": "Lumalia",
     "type": "Support",
     "hp": 6.0,
-    "ability": "Eventually assist: 6 damage after enemy turn",
-    "actionType": "support",
+    "abilities": [
+      {
+        "type": "Support",
+        "ability": "Eventually assist: 6 damage after enemy turn",
+        "actionType": "support",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 2,
     "slot_cost": 2.0,
     "ip_cost": 10,
@@ -123,8 +203,16 @@
     "name": "Syranna",
     "type": "DPS",
     "hp": 7.0,
-    "ability": "Magic Missile: 6 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Magic Missile: 6 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 2,
     "slot_cost": 2.0,
     "ip_cost": 15,
@@ -135,8 +223,16 @@
     "name": "Grogu",
     "type": "DPS",
     "hp": 7.0,
-    "ability": "Lightning Bolt: 6 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Lightning Bolt: 6 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 2,
     "slot_cost": 2.0,
     "ip_cost": 15,
@@ -147,8 +243,16 @@
     "name": "Eddie",
     "type": "Healer",
     "hp": 7.0,
-    "ability": "Cure Wounds (4th level): Heal one creature for 5 HP",
-    "actionType": "heal",
+    "abilities": [
+      {
+        "type": "Healer",
+        "ability": "Cure Wounds (4th level): Heal one creature for 5 HP",
+        "actionType": "heal",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 2,
     "slot_cost": 2.0,
     "ip_cost": 15,
@@ -159,8 +263,16 @@
     "name": "Lynel Richie",
     "type": "DPS",
     "hp": 10.0,
-    "ability": "Charge: 6 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Charge: 6 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 3,
     "slot_cost": 3.0,
     "ip_cost": 25,
@@ -171,8 +283,16 @@
     "name": "Marlon Humphrey",
     "type": "DPS",
     "hp": 10.0,
-    "ability": "Whale Smash: 6 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Whale Smash: 6 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 3,
     "slot_cost": 3.0,
     "ip_cost": 25,
@@ -183,8 +303,16 @@
     "name": "Elias Destry",
     "type": "DPS",
     "hp": 10.0,
-    "ability": "Blight: 6 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Blight: 6 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 3,
     "slot_cost": 3.0,
     "ip_cost": 25,
@@ -195,8 +323,16 @@
     "name": "Momoa Destry",
     "type": "DPS",
     "hp": 10.0,
-    "ability": "Wild Surge Bolt of Light: 6 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Wild Surge Bolt of Light: 6 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 3,
     "slot_cost": 3.0,
     "ip_cost": 25,
@@ -207,8 +343,16 @@
     "name": "Willis",
     "type": "Support",
     "hp": 12.0,
-    "ability": "Gaseous Form: Target avoids all damage for 1 turn",
-    "actionType": "support",
+    "abilities": [
+      {
+        "type": "Support",
+        "ability": "Gaseous Form: Target avoids all damage for 1 turn",
+        "actionType": "support",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 3,
     "slot_cost": 3.0,
     "ip_cost": 30,
@@ -219,8 +363,16 @@
     "name": "Scout",
     "type": "Support",
     "hp": 12.0,
-    "ability": "Rally the Troops: Gain +1 AP",
-    "actionType": "support",
+    "abilities": [
+      {
+        "type": "Support",
+        "ability": "Rally the Troops: Gain +1 AP",
+        "actionType": "support",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 3,
     "slot_cost": 3.0,
     "ip_cost": 30,
@@ -231,8 +383,16 @@
     "name": "Miriam",
     "type": "DPS",
     "hp": 15.0,
-    "ability": "Sneak Attack: 10 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Sneak Attack: 10 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 4,
     "slot_cost": 4.0,
     "ip_cost": 50,
@@ -243,8 +403,16 @@
     "name": "Callis",
     "type": "DPS",
     "hp": 18.0,
-    "ability": "Great Weapon Master: 8 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Great Weapon Master: 8 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 4,
     "slot_cost": 4.0,
     "ip_cost": 50,
@@ -255,8 +423,16 @@
     "name": "Sylara",
     "type": "DPS",
     "hp": 18.0,
-    "ability": "Eldtrich Blast: 10 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Eldtrich Blast: 10 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 4,
     "slot_cost": 4.0,
     "ip_cost": 75,
@@ -267,8 +443,16 @@
     "name": "Fjlurganmyr",
     "type": "DPS",
     "hp": 20.0,
-    "ability": "Lightning Arrow: 8 damage",
-    "actionType": "attack",
+    "abilities": [
+      {
+        "type": "DPS",
+        "ability": "Lightning Arrow: 8 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 4,
     "slot_cost": 4.0,
     "ip_cost": 75,
@@ -279,8 +463,16 @@
     "name": "Br'er",
     "type": "Suppor",
     "hp": 20.0,
-    "ability": "Disarming attack: 5 damage, and next attack deals half damage",
-    "actionType": "support",
+    "abilities": [
+      {
+        "type": "Support",
+        "ability": "Disarming attack: 5 damage, and next attack deals half damage",
+        "actionType": "support",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": true
+      }
+    ],
     "tier": 4,
     "slot_cost": 4.0,
     "ip_cost": 75,

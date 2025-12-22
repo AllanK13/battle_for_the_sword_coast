@@ -126,7 +126,13 @@ function createEncounterSession(enemyIndex, chosenIds, rng){
         // derive friendly hero and enemy names for messages
         const heroName = (encounter.playfield && encounter.playfield[slot] && encounter.playfield[slot].base && encounter.playfield[slot].base.name) ? encounter.playfield[slot].base.name : ('Hero ' + (slot+1));
         const enemyName = (encounter.enemy && (encounter.enemy.name || encounter.enemy.id)) ? (encounter.enemy.name || encounter.enemy.id) : 'Enemy';
-        if(ctx.setMessage) ctx.setMessage(heroName+' dealt '+res.dmg+' damage. '+enemyName+' HP: '+res.enemyHp);
+        if(res.missed){
+          if(ctx.setMessage) ctx.setMessage(heroName+' missed '+enemyName);
+        } else if(res.crit){
+          if(ctx.setMessage) ctx.setMessage(heroName+' critically hit '+enemyName+' for '+res.dmg+' damage. '+enemyName+' HP: '+res.enemyHp);
+        } else {
+          if(ctx.setMessage) ctx.setMessage(heroName+' dealt '+res.dmg+' damage. '+enemyName+' HP: '+res.enemyHp);
+        }
         try{
           if(res.dmg && res.dmg > 0){
             const sfxCandidates = ['./assets/sfx/player_attack.mp3'];
@@ -204,11 +210,13 @@ function createEncounterSession(enemyIndex, chosenIds, rng){
           if(ev.type === 'hit') {
               const name = ev.heroName || (encounter.playfield[ev.slot] && encounter.playfield[ev.slot].base && encounter.playfield[ev.slot].base.name) || ('space ' + (ev.slot+1));
               const totalDmg = (ev.tempTaken||0)+(ev.hpTaken||0);
-              const attackPrefix = ev.attackName ? (enemyName + ' used ' + ev.attackName + ' and ') : (enemyName + ' ');
-              if(ev.died) return attackPrefix + 'hit ' + name + ' for ' + totalDmg + ' and killed it';
+            const attackPrefix = ev.attackName ? (enemyName + ' used ' + ev.attackName + ' and ') : (enemyName + ' ');
+              if(ev.missed) return attackPrefix + 'missed ' + name;
+              if(ev.died) return (ev.crit ? attackPrefix + 'critically hit ' : attackPrefix + 'hit ') + name + ' for ' + totalDmg + ' and killed it';
               if(totalDmg === 0) return attackPrefix + 'attacked ' + name + ' but dealt no damage';
+              if(ev.crit) return attackPrefix + 'critically hit ' + name + ' for ' + totalDmg + ', remaining HP: ' + ev.remainingHp;
               return attackPrefix + 'hit ' + name + ' for ' + totalDmg + ', remaining HP: ' + ev.remainingHp;
-            }
+          }
           return null;
         }).filter(Boolean);
       }
@@ -370,7 +378,13 @@ function handlePlayHeroAction(encounter, ctx, slot, targetIndex){
     // include hero & enemy names in the attack message
     const heroName = (encounter.playfield && encounter.playfield[slot] && encounter.playfield[slot].base && encounter.playfield[slot].base.name) ? encounter.playfield[slot].base.name : ('Hero ' + (slot+1));
     const enemyName = (encounter.enemy && (encounter.enemy.name || encounter.enemy.id)) ? (encounter.enemy.name || encounter.enemy.id) : 'Enemy';
-    if(ctx.setMessage) ctx.setMessage(heroName+' dealt '+res.dmg+' damage. '+enemyName+' HP: '+res.enemyHp);
+    if(res.missed){
+      if(ctx.setMessage) ctx.setMessage(heroName+' missed '+enemyName);
+    } else if(res.crit){
+      if(ctx.setMessage) ctx.setMessage(heroName+' critically hit '+enemyName+' for '+res.dmg+' damage. '+enemyName+' HP: '+res.enemyHp);
+    } else {
+      if(ctx.setMessage) ctx.setMessage(heroName+' dealt '+res.dmg+' damage. '+enemyName+' HP: '+res.enemyHp);
+    }
     try{
       if(res.dmg && res.dmg > 0){
         const sfxCandidates = ['./assets/sfx/player_attack.mp3','assets/sfx/player_attack.mp3','/assets/sfx/player_attack.mp3','./assets/music/player_attack.mp3','assets/music/player_attack.mp3','/assets/music/player_attack.mp3'];
