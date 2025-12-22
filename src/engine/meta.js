@@ -1,5 +1,5 @@
-const STORAGE_KEY = 'vcg_meta_v1';
-const SLOT_KEY_PREFIX = 'vcg_save_slot_v1_';
+const STORAGE_KEY = 'bftsc_meta_v1';
+const SLOT_KEY_PREFIX = 'bftsc_save_slot_v1_';
 
 export function createMeta(){
   return {
