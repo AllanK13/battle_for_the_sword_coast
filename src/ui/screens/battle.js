@@ -321,7 +321,7 @@ export function renderBattle(root, ctx){
     availableSummons.forEach(s=>{
       // build the summon card (cardTile returns a `.card` element)
       const sOpts = { hideSlot: true, hideCost: true };
-      try{ if(s && s.id === 'blackrazor') sOpts.imageOverride = './assets/Blackrazor.png'; }catch(e){}
+      try{ if(s && s.id === 'blackrazor') sOpts.imageOverride = './assets/blackrazor.png'; }catch(e){}
       const sCard = cardTile(s, sOpts);
       // shrink Blackrazor image in the summons panel by tagging the card
       if(s && s.id === 'blackrazor'){ try{ sCard.classList.add('blackrazor'); }catch(e){} }
@@ -368,7 +368,7 @@ export function renderBattle(root, ctx){
   try{
     const enemyId = ctx.encounter.enemy && ctx.encounter.enemy.id;
     if(enemyId === 'acererak'){
-      enemyOpts.imageOverride = './assets/Acererak.png';
+      enemyOpts.imageOverride = './assets/acererak.png';
     }
   }catch(e){}
   const enemyCard = cardTile(ctx.encounter.enemy, enemyOpts);
