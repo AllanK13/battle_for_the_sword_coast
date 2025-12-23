@@ -89,7 +89,25 @@ export function cardTile(item, opts={}){
       if(item && Array.isArray(item.abilities) && item.abilities.length>0){
         item.abilities.forEach(a=>{
           const text = (a && (a.ability || a.description)) ? (a.ability || a.description) : null;
-          if(text) stats.appendChild(el('div',{class:'muted card-desc'},[text]));
+          if(text){
+            // render ability text and, for attacks, append hit/crit inline with no extra space
+            const abilityEl = el('div',{class:'card-desc'},[]);
+            abilityEl.appendChild(document.createTextNode(text));
+            try{
+              if(a && typeof a.actionType === 'string' && a.actionType.toLowerCase() === 'attack'){
+                const hasHit = (typeof a.hitChance === 'number');
+                const hasCrit = (typeof a.critChance === 'number');
+                if(hasHit || hasCrit){
+                  const hit = hasHit ? Math.round(a.hitChance * 100) : 0;
+                  const crit = hasCrit ? Math.round(a.critChance * 100) : 0;
+                  const statsText = 'Hit ' + String(hit) + '%, Crit ' + String(crit) + '%';
+                  const statsDiv = el('div',{class:'card-desc card-attack-stats'},[statsText]);
+                  abilityEl.appendChild(statsDiv);
+                }
+              }
+            }catch(e){}
+            stats.appendChild(abilityEl);
+          }
         });
       } else if(item && item.ability){
         stats.appendChild(el('div',{class:'muted card-desc'},[item.ability]));

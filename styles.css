@@ -98,7 +98,7 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 
 .upgrades-screen .card-wrap{
   /* match the base card height so every tile occupies the same vertical space */
-  height: 400px;
+  height: 520px;
   display:flex;
   flex-direction:column;
 }
@@ -231,6 +231,12 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
   -webkit-text-stroke: 0.6px #000;
 }
 .card-desc{font-size:14px;font-style:italic;white-space:normal;word-break:break-word;overflow:auto;margin-top:6px;color:#e6f3ea}
+
+/* Inline attack stats (no extra space after ability text) */
+.card-attack-stats-inline{ margin-left:0; font-style:normal; color:inherit }
+
+/* Block attack stats shown on their own line directly under the ability text */
+.card-attack-stats{ margin-top:0px }
 
 /* Footer placed inside a card so action buttons anchor to the bottom */
 .card .card-footer{ margin-top: auto; padding-top:8px; display:flex; gap:8px }
@@ -382,10 +388,10 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 }
 
 /* Make sure upgrades screen card-wrap matches responsive card heights */
-@media (min-width:1001px){ .upgrades-screen .card-wrap{ height:440px } }
-@media (max-width:1000px){ .upgrades-screen .card-wrap{ height:400px } }
-@media (max-width:720px){ .upgrades-screen .card-wrap{ height:380px } }
-@media (max-width:420px){ .upgrades-screen .card-wrap{ height:320px } }
+@media (min-width:1001px){ .upgrades-screen .card-wrap{ height:560px } }
+@media (max-width:1000px){ .upgrades-screen .card-wrap{ height:520px } }
+@media (max-width:720px){ .upgrades-screen .card-wrap{ height:480px } }
+@media (max-width:420px){ .upgrades-screen .card-wrap{ height:420px } }
 
 /* Prevent cards on the Upgrades screen from resizing with the window
    Keep a fixed tile size so footers/buttons remain aligned regardless
@@ -393,7 +399,7 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 .upgrades-screen .card-wrap,
 .upgrades-screen .card{
   width: 220px !important;
-  height: 440px !important;
+  height: 460px !important;
   flex: 0 0 auto !important;
   transition: none !important;
 }

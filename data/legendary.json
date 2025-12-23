@@ -12,7 +12,7 @@
     "type": "Control",
     "ability": "Stuns the enemy for 2 turns",
     "restriction": "Once per run",
-    "ip_cost": 100,
+    "ip_cost": 120,
     "id": "whelm"
   },
   {
@@ -20,7 +20,7 @@
     "type": "Damage",
     "ability": "Reduces enemy HP by 50% of its max HP",
     "restriction": "Once per run",
-    "ip_cost": 100,
+    "ip_cost": 140,
     "id": "wave"
   },
   {

@@ -171,7 +171,7 @@
     ],
     "tier": 2,
     "slot_cost": 2.0,
-    "ip_cost": 10,
+    "ip_cost": 12,
     "id": "cree_teen",
     "starter": false
   },
@@ -191,7 +191,7 @@
     ],
     "tier": 2,
     "slot_cost": 2.0,
-    "ip_cost": 10,
+    "ip_cost": 12,
     "id": "gnolls",
     "starter": false
   },
@@ -231,7 +231,7 @@
     ],
     "tier": 2,
     "slot_cost": 2.0,
-    "ip_cost": 15,
+    "ip_cost": 18,
     "id": "syranna",
     "starter": false
   },
@@ -251,7 +251,7 @@
     ],
     "tier": 2,
     "slot_cost": 2.0,
-    "ip_cost": 15,
+    "ip_cost": 18,
     "id": "grogu",
     "starter": false
   },
@@ -299,7 +299,7 @@
     ],
     "tier": 3,
     "slot_cost": 3.0,
-    "ip_cost": 25,
+    "ip_cost": 30,
     "id": "lynel_richie",
     "starter": false
   },
@@ -319,7 +319,7 @@
     ],
     "tier": 3,
     "slot_cost": 3.0,
-    "ip_cost": 25,
+    "ip_cost": 30,
     "id": "marlon_humphrey",
     "starter": false
   },
@@ -339,7 +339,7 @@
     ],
     "tier": 3,
     "slot_cost": 3.0,
-    "ip_cost": 25,
+    "ip_cost": 35,
     "id": "elias_destry",
     "starter": false
   },
@@ -359,7 +359,7 @@
     ],
     "tier": 3,
     "slot_cost": 3.0,
-    "ip_cost": 25,
+    "ip_cost": 35,
     "id": "momoa_destry",
     "starter": false
   },
@@ -370,7 +370,7 @@
     "abilities": [
       {
         "type": "Support",
-        "ability": "Gaseous Form: Target is invulnerable (ignores all damage) for 1 turn",
+        "ability": "Gaseous Form: Target is invulnerable for 1 turn",
         "name": "Gaseous Form: Invulnerable",
         "actionType": "support",
         "primary": true,
@@ -387,7 +387,7 @@
     ],
     "tier": 3,
     "slot_cost": 3.0,
-    "ip_cost": 30,
+    "ip_cost": 40,
     "id": "willis",
     "starter": false
   },
@@ -416,7 +416,7 @@
     ],
     "tier": 3,
     "slot_cost": 3.0,
-    "ip_cost": 30,
+    "ip_cost": 45,
     "id": "scout",
     "starter": false
   },
@@ -436,7 +436,7 @@
     ],
     "tier": 4,
     "slot_cost": 4.0,
-    "ip_cost": 50,
+    "ip_cost": 60,
     "id": "miriam",
     "starter": false
   },
@@ -456,7 +456,7 @@
     ],
     "tier": 4,
     "slot_cost": 4.0,
-    "ip_cost": 50,
+    "ip_cost": 60,
     "id": "callis",
     "starter": false
   },
@@ -476,7 +476,7 @@
     ],
     "tier": 4,
     "slot_cost": 4.0,
-    "ip_cost": 75,
+    "ip_cost": 80,
     "id": "sylara",
     "starter": false
   },
@@ -496,7 +496,7 @@
     ],
     "tier": 4,
     "slot_cost": 4.0,
-    "ip_cost": 75,
+    "ip_cost": 80,
     "id": "fjlurganmyr",
     "starter": false
   },
