@@ -2,7 +2,7 @@
   {
     "name": "Twig Blight",
     "ip_reward": 1,
-    "hp": 18,
+    "hp": 20,
     "id": "twig_blight",
     "attacks": [
       {
