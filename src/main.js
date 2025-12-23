@@ -11,8 +11,8 @@ import { renderStats } from './ui/screens/arcade_stats.js';
 import { renderHowTo } from './ui/screens/arcade_howto.js';
 import { renderUpgrades } from './ui/screens/arcade_upgrades.js';
 import { renderBattle } from './ui/screens/battle.js';
-import { renderEnd } from './ui/screens/arcade_end.js';
-import { renderEncounterEnd } from './ui/screens/arcade_encounter_end.js';
+import { renderEnd } from './ui/screens/end.js';
+import { renderEncounterEnd } from './ui/screens/encounter_end.js';
 
 const data = {};
 let meta = loadMeta();
@@ -298,6 +298,7 @@ function createEncounterSession(enemyIndex, chosenIds, rng){
           enemy: encounter.enemy,
           reward,
           runSummary,
+          showIp: true,
           onContinue: ()=>{
             // restore handlers
             ctx.onStateChange = prevOnState;
@@ -356,7 +357,7 @@ function createEncounterSession(enemyIndex, chosenIds, rng){
             } else {
               // no more enemies -> end run
               try{ meta.runs = (meta.runs||0) + 1; saveMeta(meta); }catch(e){}
-              const endCtx = { data, runSummary, onRestart: ()=>{ try{ meta.summonUsage = {}; saveMeta(meta); }catch(e){}; navigate('arcade_start'); } };
+              const endCtx = { data, runSummary, showIp: true, onRestart: ()=>{ try{ meta.summonUsage = {}; saveMeta(meta); }catch(e){}; navigate('arcade_start'); } };
               // prevent any pending timeouts or future onStateChange calls from re-rendering the battle
               ctx.onStateChange = ()=>{};
               ctx.setMessage = ()=>{};
@@ -390,7 +391,7 @@ function createEncounterSession(enemyIndex, chosenIds, rng){
         // capture the last battle history message (if any) so the end screen
         // can show what dealt the killing blow
         const lastHistoryMessage = (ctx && Array.isArray(ctx.messageHistory) && ctx.messageHistory.length>0) ? ctx.messageHistory[0].text : null;
-        const endCtx = { data, runSummary, vInterest, lastHistoryMessage, onRestart: ()=>{ try{ meta.summonUsage = {}; saveMeta(meta); }catch(e){}; navigate('arcade_start'); } };
+        const endCtx = { data, runSummary, vInterest, lastHistoryMessage, showIp: true, onRestart: ()=>{ try{ meta.summonUsage = {}; saveMeta(meta); }catch(e){}; navigate('arcade_start'); } };
         // prevent any pending timeouts or future onStateChange calls from re-rendering the battle
         ctx.onStateChange = ()=>{};
         ctx.setMessage = ()=>{};        

@@ -1,62 +1,55 @@
 import { el } from '../renderer.js';
 import { AudioManager } from '../../engine/audio.js';
 
-export function renderEncounterEnd(root, ctx){
-  const enemy = ctx.enemy || {};
-  const enemyId = enemy.id || enemy.name || 'Enemy';
-  const enemyName = enemy.name || enemyId;
-
-  // Play victory music for encounter completion (stop previous music first)
-  try{
-    const musicCandidates = ['./assets/music/victory.mp3','assets/music/victory.mp3','/assets/music/victory.mp3'];
-    AudioManager.init(musicCandidates[0], { autoplay:true, loop:false });
-    // Turn down victory track by 20% (use AudioManager so multiplier applies);
-    try{
-      const base = (AudioManager.getVolume ? AudioManager.getVolume() : (AudioManager.audio && typeof AudioManager.audio.volume === 'number' ? AudioManager.audio.volume : 1));
-      ctx._victoryPrevVol = base;
-      // Turn down victory track to 40% of base (quieter)
-      AudioManager.setVolume(Math.max(0, base * 0.10));
-    }catch(e){/* ignore */}
-  }catch(e){ /* ignore audio init failures */ }
-
+export function renderEnd(root, ctx){
+  const rs = ctx.runSummary || { defeated: [], diedTo: null, ipEarned: 0 };
   const container = el('div',{class:'end-screen'},[]);
-  container.appendChild(el('h1',{class:'end-title'},['Encounter Complete']));
+  container.appendChild(el('h1',{class:'end-title'},['Run Summary']));
 
   const summary = el('div',{class:'end-summary panel'},[]);
-
-  // Killed enemy preview
-  const killedWrap = el('div',{},[]);
-  const killedName = el('div',{class:'end-stat'},['You killed: ' + enemyName]);
-  killedWrap.appendChild(killedName);
-  // try to show an image if possible (non-fatal fallback)
-  if(enemy.img || enemy.image){
-    const img = el('img',{src: enemy.img || enemy.image, style: 'max-width:220px;max-height:160px;margin-top:8px;border-radius:8px;'},[]);
-    killedWrap.appendChild(img);
+  if (ctx.showIp !== false) {
+    summary.appendChild(el('div',{class:'end-stat'},['IP earned: '+(rs.ipEarned||0)]));
   }
-  summary.appendChild(killedWrap);
-
-  // Reward display
-  const rewardStat = el('div',{class:'end-stat'},['IP gained: '+(ctx.reward||0)]);
-  summary.appendChild(rewardStat);
+  // V interest display (if applicable)
+  if(ctx.vInterest && Number(ctx.vInterest) > 0){
+    summary.appendChild(el('div',{class:'end-stat'},['V interest earned: '+Number(ctx.vInterest)]));
+  }
+  summary.appendChild(el('div',{class:'end-stat'},['Enemies defeated:']));
+  const ul = el('ul',{class:'end-list'},[]);
+  (rs.defeated||[]).forEach(id=>{
+    const name = (ctx.data && ctx.data.enemies) ? (ctx.data.enemies.find(e=>e.id===id)||{}).name || id : id;
+    ul.appendChild(el('li',{},[name]));
+  });
+  summary.appendChild(ul);
+  if(rs.diedTo){
+    const diedName = (ctx.data && ctx.data.enemies) ? (ctx.data.enemies.find(e=>e.id===rs.diedTo)||{}).name || rs.diedTo : rs.diedTo;
+    summary.appendChild(el('div',{class:'end-stat end-died'},['Died to: '+diedName]));
+    // show last combat history message (damage log) if provided in context
+    try{
+      const lastMsg = ctx.lastHistoryMessage || ctx.lastBattleMessage || null;
+      if(lastMsg){
+        summary.appendChild(el('div',{class:'end-stat end-last-msg'},['Last hit: '+lastMsg]));
+      }
+    }catch(e){ /* ignore */ }
+  } else {
+    summary.appendChild(el('div',{class:'end-stat end-survived'},['You survived the run']));
+  }
 
   container.appendChild(summary);
 
   const btnRow = el('div',{class:'end-btns'},[]);
-  const cont = el('button',{class:'btn end-back-btn'},['Continue']);
-  cont.addEventListener('click',()=>{
-    // restore volume if we reduced it for the victory track
-    try{
-      if(typeof ctx._victoryPrevVol !== 'undefined'){
-        AudioManager.setVolume(ctx._victoryPrevVol);
-        delete ctx._victoryPrevVol;
-      }
-    }catch(e){}
-    if(ctx.onContinue) ctx.onContinue();
-  });
-  btnRow.appendChild(cont);
+  const back = el('button',{class:'btn end-back-btn'},['Back to Menu']);
+  back.addEventListener('click',()=> ctx.onRestart());
+  btnRow.appendChild(back);
   container.appendChild(btnRow);
 
   root.appendChild(container);
+
+  // When showing the end screen, play end music (stop previous audio first)
+  try{
+    const musicCandidates = ['./assets/music/end.mp3','assets/music/end.mp3','/assets/music/end.mp3'];
+    AudioManager.init(musicCandidates[0], { autoplay:true, loop:false });
+  }catch(e){ /* ignore audio init failures */ }
 
   // Floating music control (bottom-right)
   try{
