@@ -447,7 +447,7 @@
     "abilities": [
       {
         "type": "DPS",
-        "ability": "Great Weapon Master: 8 damage",
+        "ability": "Great Weapon Master: 12 damage",
         "actionType": "attack",
         "hitChance": 0.75,
         "critChance": 0.05,

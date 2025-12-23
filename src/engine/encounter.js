@@ -264,6 +264,7 @@ export function playHeroAttack(state, slotIndex, abilityIndex=null){
   if(state.ap <= 0) return { success:false, reason:'no AP' };
   const hero = state.playfield[slotIndex];
   if(!hero) return { success:false, reason:'no hero' };
+  if(hero.stunnedTurns && hero.stunnedTurns>0) return { success:false, reason:'stunned' };
   // prefer an explicitly-selected ability when provided
   let primary = null;
   try{
@@ -283,6 +284,8 @@ export function playHeroAttack(state, slotIndex, abilityIndex=null){
   // consume AP for the attack attempt
   state.ap -= 1;
   // roll to hit
+  // if hero is blinded, their attacks have a 50% miss penalty
+  try{ if(hero && hero.blindedTurns && hero.blindedTurns>0){ hitChance = hitChance * 0.5; } }catch(e){}
   if(!checkHit(state, hitChance)){
     // attack missed — do not modify enemy HP
     if(mult !== 1) state.nextAttackMultiplier = 1;
@@ -290,7 +293,13 @@ export function playHeroAttack(state, slotIndex, abilityIndex=null){
   }
   // hit: roll for crit
   const isCrit = checkCrit(state, critChance);
-  const dmg = Math.floor(baseDmg * mult * (isCrit ? 2 : 1));
+  let dmg = Math.floor(baseDmg * mult * (isCrit ? 2 : 1));
+  // physical damage penalty from enfeeble: halve final damage (rounded down)
+  try{
+    if(hero && hero.enfeebledTurns && hero.enfeebledTurns>0){
+      dmg = Math.floor(dmg/2);
+    }
+  }catch(e){}
   state.enemy.hp = (state.enemy.hp || 0) - dmg;
   if(mult !== 1) state.nextAttackMultiplier = 1;
   return { success:true, type: 'attack', dmg, enemyHp: state.enemy.hp, crit: isCrit, baseDmg };
@@ -301,6 +310,7 @@ export function playHeroAction(state, slotIndex, targetIndex=null, abilityIndex=
   if(state.ap <= 0) return { success:false, reason:'no AP' };
   const hero = state.playfield[slotIndex];
   if(!hero) return { success:false, reason:'no hero' };
+  if(hero.stunnedTurns && hero.stunnedTurns>0) return { success:false, reason:'stunned' };
   // prefer an explicitly-selected ability when provided
   let primary = null;
   try{
@@ -517,6 +527,7 @@ export function defendHero(state, slotIndex){
   if(state.ap <= 0) return { success:false, reason:'no AP' };
   const hero = state.playfield[slotIndex];
   if(!hero) return { success:false, reason:'no hero' };
+  if(hero.stunnedTurns && hero.stunnedTurns>0) return { success:false, reason:'stunned' };
   // mark hero as defending for the upcoming enemy action
   hero.defending = true;
   try{ hero.statusIcons = hero.statusIcons || []; hero.statusIcons.push({ id:'defend', source:'player', ts: Date.now() }); }catch(e){}
@@ -558,6 +569,24 @@ export function endPlayerTurn(state){
 
 export function enemyAct(state){
   state.turn++;
+  // Decrement hero stun counters at the start of the enemy turn (stuns prevent one player turn)
+  try{
+    (state.playfield||[]).forEach(h=>{
+      if(h && typeof h.stunnedTurns === 'number' && h.stunnedTurns>0){
+        h.stunnedTurns = Math.max(0, (h.stunnedTurns||0) - 1);
+      }
+      if(h && typeof h.enfeebledTurns === 'number' && h.enfeebledTurns>0){
+        h.enfeebledTurns = Math.max(0, (h.enfeebledTurns||0) - 1);
+      }
+    });
+  }catch(e){}
+  try{
+    (state.playfield||[]).forEach(h=>{
+      if(h && typeof h.blindedTurns === 'number' && h.blindedTurns>0){
+        h.blindedTurns = Math.max(0, (h.blindedTurns||0) - 1);
+      }
+    });
+  }catch(e){}
   // check stunned
   if(state.enemy.stunnedTurns && state.enemy.stunnedTurns>0){
     state.enemy.stunnedTurns--;
@@ -613,6 +642,8 @@ export function enemyAct(state){
           if(si.id === 'help') return Boolean(h.helped);
           if(si.id === 'assist') return Boolean(h.hitBonus && h.hitBonus > 0);
           if(si.id === 'protected') return Boolean(h.protected);
+          if(si.id === 'stunned') return Boolean(h.stunnedTurns && h.stunnedTurns > 0);
+          if(si.id === 'enfeebled') return Boolean(h.enfeebledTurns && h.enfeebledTurns > 0);
           if(si.id === 'lumalia'){
             // keep lumalia icon only if a pendingEffect for this slot remains
             const hasPending = (state.pendingEffects||[]).some(pe=>pe && pe.id === 'lumalia' && pe.slot === (state.playfield.indexOf(h)));
@@ -721,6 +752,38 @@ export function enemyAct(state){
     }
     // after performing the attack(s), fall through to common end-of-turn housekeeping
     // (events have been populated above)
+    // If this attack has a data-driven effect (e.g., stun), apply it to hit targets
+    try{
+      if(atk && atk.effect){
+        const eff = String(atk.effect).toLowerCase();
+        const newEvents = [];
+        (events||[]).forEach(ev=>{
+          try{
+            if(ev && ev.type === 'hit' && !ev.missed && ((ev.hpTaken||0) > 0 || (ev.tempTaken||0) > 0)){
+              const slot = ev.slot;
+              const h = state.playfield[slot];
+              if(!h) return;
+              if(eff === 'stun'){
+                h.stunnedTurns = Math.max(1, (h.stunnedTurns||0));
+                try{ h.statusIcons = h.statusIcons || []; h.statusIcons.push({ id:'stunned', source: state.enemy && (state.enemy.id||state.enemy.name) || 'enemy', ts: Date.now(), turns: 1 }); }catch(e){}
+                newEvents.push({ type:'heroStunned', slot, turns: 1, heroName: h.base && h.base.name ? h.base.name : null });
+              }
+              if(eff === 'enfeeble'){
+                h.enfeebledTurns = Math.max(1, (h.enfeebledTurns||0));
+                try{ h.statusIcons = h.statusIcons || []; h.statusIcons.push({ id:'enfeebled', source: state.enemy && (state.enemy.id||state.enemy.name) || 'enemy', ts: Date.now(), turns: 1 }); }catch(e){}
+                newEvents.push({ type:'heroEnfeebled', slot, turns: 1, heroName: h.base && h.base.name ? h.base.name : null });
+              }
+              if(eff === 'blind'){
+                h.blindedTurns = Math.max(1, (h.blindedTurns||0));
+                try{ h.statusIcons = h.statusIcons || []; h.statusIcons.push({ id:'blind', source: state.enemy && (state.enemy.id||state.enemy.name) || 'enemy', ts: Date.now(), turns: 1 }); }catch(e){}
+                newEvents.push({ type:'heroBlinded', slot, turns: 1, heroName: h.base && h.base.name ? h.base.name : null });
+              }
+            }
+          }catch(e){}
+        });
+        if(newEvents.length) events.push(...newEvents);
+      }
+    }catch(e){}
   }
   // No data-driven `attacks` defined: do not perform legacy fallback attacks.
   // Advance turn housekeeping and return empty events — enemy cannot act.
@@ -770,6 +833,9 @@ export function enemyAct(state){
         if(si.id === 'help') return Boolean(h.helped);
         if(si.id === 'assist') return Boolean(h.hitBonus && h.hitBonus > 0);
         if(si.id === 'protected') return Boolean(h.protected);
+        if(si.id === 'stunned') return Boolean(h.stunnedTurns && h.stunnedTurns > 0);
+        if(si.id === 'enfeebled') return Boolean(h.enfeebledTurns && h.enfeebledTurns > 0);
+        if(si.id === 'blind' || si.id === 'blinded') return Boolean(h.blindedTurns && h.blindedTurns > 0);
         if(si.id === 'lumalia'){
           const hasPending = (state.pendingEffects||[]).some(pe=>pe && pe.id === 'lumalia' && pe.slot === (state.playfield.indexOf(h)));
           return hasPending;

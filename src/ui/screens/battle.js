@@ -99,7 +99,7 @@ function slotNode(slotObj, idx, handlers={}, highlight=false, targetHighlight=fa
       icons.forEach(ic=>{
         try{
           const id = ic && ic.id ? String(ic.id) : '?';
-          const emoji = (id === 'assist') ? '🎯' : (id === 'defend') ? '💨' : (id === 'help') ? '🕷️' : (id === 'protected') ? '🌪' : (id === 'lumalia') ? '🕓' : id[0];
+          const emoji = (id === 'assist') ? '🎯' : (id === 'defend') ? '💨' : (id === 'help') ? '🕷️' : (id === 'protected') ? '🌪' : (id === 'lumalia') ? '🕓' : (id === 'stunned') ? '💫' : (id === 'enfeebled') ? '⬇️' : (id === 'blind') ? '😵' : id[0];
           // Build a human-readable tooltip title and aria-label
           let titleText = '';
           switch(id){
@@ -115,8 +115,18 @@ function slotNode(slotObj, idx, handlers={}, highlight=false, targetHighlight=fa
             case 'protected':
               titleText = 'Gaseous Form — Invulnerable' + (ic && ic.turns ? (' ('+ic.turns+' turn'+(ic.turns>1?'s':'')+')') : '');
               break;
+            case 'stunned':
+              titleText = 'Stunned — cannot act' + (ic && ic.turns ? (' for '+ic.turns+' turn'+(ic.turns>1?'s':'')) : '');
+              break;
+            case 'enfeebled':
+              titleText = 'Enfeebled — physical attacks deal half damage' + (ic && ic.turns ? (' for '+ic.turns+' turn'+(ic.turns>1?'s':'')) : '');
+              break;
             case 'lumalia':
               titleText = 'Lumalia — Pending ' + (ic && ic.dmg ? ic.dmg : '') + ' damage';
+              break;
+            case 'blind':
+            case 'blinded':
+              titleText = 'Blinded — 50% miss chance' + (ic && ic.turns ? (' for '+ic.turns+' turn'+(ic.turns>1?'s':'')) : '');
               break;
             default:
               titleText = (id.charAt(0).toUpperCase()+id.slice(1)) + (ic && ic.source ? (' ('+ic.source+')') : '');
@@ -382,7 +392,7 @@ export function renderBattle(root, ctx){
       // position it relative to the image: top 10% of the card image area
       enemyCard.appendChild(lbl);
       // remove after animation completes to keep DOM clean
-      setTimeout(()=>{ try{ if(lbl && lbl.parentNode) lbl.parentNode.removeChild(lbl); }catch(e){} }, 1100);
+      setTimeout(()=>{ try{ if(lbl && lbl.parentNode) lbl.parentNode.removeChild(lbl); }catch(e){} }, 1000);
     }
   }catch(e){ /* ignore overlay failures */ }
   // show stun badge bottom-right when enemy is stunned
@@ -421,6 +431,7 @@ export function renderBattle(root, ctx){
     const container = slotNode(ctx.encounter.playfield[i], i, {
       ap: ctx.encounter.ap,
       onAction(idx, abilityIndex){
+        try{ if(ctx._lastEnemyAttack) delete ctx._lastEnemyAttack; }catch(e){}
         if(ctx.encounter.ap < 1) { if(ctx.setMessage) ctx.setMessage('Not enough AP'); return; }
         // detect explicit actionType if present
         const hero = ctx.encounter.playfield[idx];
@@ -480,6 +491,7 @@ export function renderBattle(root, ctx){
       isTarget,
       ctx,
       onDefend(idx){
+        try{ if(ctx._lastEnemyAttack) delete ctx._lastEnemyAttack; }catch(e){}
         if(ctx.encounter.ap < 1) { if(ctx.setMessage) ctx.setMessage('Not enough AP'); return; }
         if(typeof ctx.defendHero === 'function'){
           const res = ctx.defendHero(idx);
@@ -490,6 +502,7 @@ export function renderBattle(root, ctx){
         ctx.onStateChange();
       },
       onSelect(idx){
+        try{ if(ctx._lastEnemyAttack) delete ctx._lastEnemyAttack; }catch(e){}
         // if summon pending, apply summon to this target
         if(pendingSummon){
           const res = ctx.useSummon(pendingSummon.id, idx);
@@ -552,6 +565,7 @@ export function renderBattle(root, ctx){
         ctx.onStateChange();
       },
       onClick(idx){
+        try{ if(ctx._lastEnemyAttack) delete ctx._lastEnemyAttack; }catch(e){}
         // clicking a slot same behavior as onSelect for pending actions
         if(pendingSummon){
           const res = ctx.useSummon(pendingSummon.id, idx);
@@ -760,6 +774,7 @@ export function renderBattle(root, ctx){
     function startDragFromHand(handIndex, cardWrap){
       const card = ctx.encounter.deck.hand[handIndex];
       if(!card){ if(ctx.setMessage) ctx.setMessage('Card not available'); return; }
+      try{ if(ctx._lastEnemyAttack) delete ctx._lastEnemyAttack; }catch(e){}
       ctx.pendingReplace = { handIndex, mode: 'place' };
       if(ctx.setMessage) ctx.setMessage('Drag the card to an empty space to place it');
       ctx.onStateChange && ctx.onStateChange();
@@ -868,6 +883,7 @@ export function renderBattle(root, ctx){
         // do not remove card from hand until replacement confirmed
         const card = ctx.encounter.deck.hand[i];
         if(!card) { if(ctx.setMessage) ctx.setMessage('Card not available'); return; }
+        try{ if(ctx._lastEnemyAttack) delete ctx._lastEnemyAttack; }catch(e){}
         ctx.pendingReplace = { handIndex: i, mode: 'replace' };
         if(ctx.setMessage) ctx.setMessage('Click a space to replace it with '+(card.name||card.id));
         ctx.onStateChange();

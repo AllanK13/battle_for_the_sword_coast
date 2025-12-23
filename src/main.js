@@ -144,9 +144,7 @@ function createEncounterSession(enemyIndex, chosenIds, rng){
       return res;
     },
     playHeroAction(slot, targetIndex, abilityIndex){
-      const res = handlePlayHeroAction(encounter, ctx, slot, targetIndex, abilityIndex);
-      if(!res || !res.success){ if(ctx.setMessage) ctx.setMessage((res && res.reason) ? res.reason : 'Action failed'); }
-      return res;
+      return handlePlayHeroAction(encounter, ctx, slot, targetIndex, abilityIndex);
     },
     defendHero(slot){
       const res = defendHero(encounter, slot);
@@ -218,6 +216,18 @@ function createEncounterSession(enemyIndex, chosenIds, rng){
               if(ev.crit) return attackPrefix + 'critically hit ' + name + ' for ' + totalDmg + ', remaining HP: ' + ev.remainingHp;
               return attackPrefix + 'hit ' + name + ' for ' + totalDmg + ', remaining HP: ' + ev.remainingHp;
           }
+              if(ev.type === 'heroStunned'){
+                const hn = ev.heroName || (encounter.playfield[ev.slot] && encounter.playfield[ev.slot].base && encounter.playfield[ev.slot].base.name) || ('space ' + (ev.slot+1));
+                return hn + ' stunned for ' + (ev.turns||1) + ' turn' + ((ev.turns||1)>1 ? 's':'' ) + '.';
+              }
+              if(ev.type === 'heroEnfeebled'){
+                const hn2 = ev.heroName || (encounter.playfield[ev.slot] && encounter.playfield[ev.slot].base && encounter.playfield[ev.slot].base.name) || ('space ' + (ev.slot+1));
+                return hn2 + ' enfeebled — physical attacks deal half damage for ' + (ev.turns||1) + ' turn' + ((ev.turns||1)>1 ? 's' : '') + '.';
+              }
+              if(ev.type === 'heroBlinded'){
+                const hn3 = ev.heroName || (encounter.playfield[ev.slot] && encounter.playfield[ev.slot].base && encounter.playfield[ev.slot].base.name) || ('space ' + (ev.slot+1));
+                return hn3 + ' blinded — 50% miss chance for ' + (ev.turns||1) + ' turn' + ((ev.turns||1)>1 ? 's' : '') + '.';
+              }
           return null;
         }).filter(Boolean);
       }
@@ -493,12 +503,23 @@ function appStart(){
           if(idx < 0 || !(data.enemies && data.enemies[idx])) { return; }
           // build a random chosen deck (sample up to 10 cards from available card pool)
           const pool = (data.cards||[]).filter(c=>c && c.id);
-          const desired = Math.min(10, pool.length);
+          const desired = Math.min(10, Math.max(pool.length, 3));
           const chosen = [];
-          while(chosen.length < desired){
+          while(chosen.length < desired && pool.length > 0){
             const idxPick = (typeof RNG !== 'undefined' && RNG) ? RNG.int(pool.length) : Math.floor(Math.random()*pool.length);
             const id = pool[idxPick].id;
             if(!chosen.includes(id)) chosen.push(id);
+          }
+          // Ensure debug encounters always include these characters when available
+          const debugMandatory = ['robohoam','bjurganmyr','tor'];
+          debugMandatory.forEach(id => { if(!chosen.includes(id)) chosen.push(id); });
+          // Trim to desired length but keep mandatory IDs
+          if(chosen.length > desired){
+            const keep = debugMandatory.filter(id=> chosen.includes(id));
+            const rest = chosen.filter(id=> !keep.includes(id)).slice(0, Math.max(0, desired - keep.length));
+            const finalChosen = keep.concat(rest);
+            // replace contents
+            chosen.length = 0; finalChosen.forEach(x=> chosen.push(x));
           }
           // build deck and start a single-encounter state
           const session = createEncounterSession(idx, chosen, RNG);

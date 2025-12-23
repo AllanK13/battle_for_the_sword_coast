@@ -5,9 +5,27 @@
     "hp": 18,
     "id": "twig_blight",
     "attacks": [
-      { "name": "Claws", "type": "single", "dmg": 1, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Claws", "type": "single", "dmg": 1, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Lash", "type": "single", "dmg": 2, "hitChance": 0.95, "critChance": 0.05 }
+      {
+        "name": "Claws",
+        "type": "single",
+        "dmg": 1,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      },
+      {
+        "name": "Claws",
+        "type": "single",
+        "dmg": 1,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      },
+      {
+        "name": "Lash",
+        "type": "single",
+        "dmg": 2,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      }
     ]
   },
   {
@@ -16,75 +34,204 @@
     "hp": 32,
     "id": "wiltherp",
     "attacks": [
-      { "name": "Poison Spray", "type": "single", "dmg": 2, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Shillelagh", "type": "single", "dmg": 2, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Thunderwave", "type": "aoe", "dmg": 2, "hitChance": 1.0, "critChance": 0.0 }
+      {
+        "name": "Poison Spray",
+        "type": "single",
+        "dmg": 2,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      },
+      {
+        "name": "Shillelagh",
+        "type": "single",
+        "dmg": 2,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      },
+      {
+        "name": "Thunderwave",
+        "type": "aoe",
+        "dmg": 2,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      }
     ]
   },
   {
     "name": "Red Wizard",
     "ip_reward": 5,
-    "hp": 58,
+    "hp": 63,
     "id": "red_wizard",
     "attacks": [
-      { "name": "Firebolt", "type": "single", "dmg": 3, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Fireball", "type": "aoe", "dmg": 2, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Magic Missile", "type": "single", "dmg": 5, "hitChance": 0.95, "critChance": 0.05 }
+      {
+        "name": "Firebolt",
+        "type": "single",
+        "dmg": 3,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      },
+      {
+        "name": "Fireball",
+        "type": "aoe",
+        "dmg": 2,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Magic Missile",
+        "type": "single",
+        "dmg": 5,
+        "hitChance": 1.00,
+        "critChance": 0.00
+      }
     ]
   },
   {
     "name": "Szass Tam",
     "ip_reward": 7,
-    "hp": 86,
+    "hp": 104,
     "id": "szass_tam",
     "attacks": [
-      { "name": "Paralyzing Touch", "type": "single", "dmg": 5, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Lightning Bolt", "type": "aoe", "dmg": 3, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Cone of Cold", "type": "aoe", "dmg": 4, "hitChance": 1.0, "critChance": 0.0 }
+      {
+        "name": "Paralyzing Touch",
+        "type": "single",
+        "dmg": 6,
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "effect": "stun"
+      },
+      {
+        "name": "Lightning Bolt",
+        "type": "aoe",
+        "dmg": 5,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Cone of Cold",
+        "type": "aoe",
+        "dmg": 7,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      }
     ]
   },
   {
     "name": "King Snurre",
     "ip_reward": 9,
-    "hp": 122,
+    "hp": 147,
     "id": "snurre",
     "attacks": [
-      { "name": "Rock Throw", "type": "aoe", "dmg": 5, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Greatsword", "type": "single", "dmg": 8, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Greatsword", "type": "multi", "dmg": 6, "hitChance": 0.95, "critChance": 0.05 }
+      {
+        "name": "Rock Throw",
+        "type": "aoe",
+        "dmg": 8,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Greatsword",
+        "type": "single",
+        "dmg": 14,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      },
+      {
+        "name": "Greatsword",
+        "type": "multi",
+        "dmg": 10,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      }
     ]
   },
   {
     "name": "Keraptis",
     "ip_reward": 11,
-    "hp": 157,
+    "hp": 222,
     "id": "keraptis",
     "attacks": [
-      { "name": "Blight", "type": "single", "dmg": 6, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Cloudkill", "type": "aoe", "dmg": 4, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Chain Lightning", "type": "aoe", "dmg": 7, "hitChance": 1.0, "critChance": 0.0 }
+      {
+        "name": "Blight",
+        "type": "single",
+        "dmg": 13,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Cloudkill",
+        "type": "aoe",
+        "dmg": 7,
+        "hitChance": 1.0,
+        "critChance": 0.0,
+        "effect": "blind"
+      },
+      {
+        "name": "Chain Lightning",
+        "type": "aoe",
+        "dmg": 9,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      }
     ]
   },
   {
     "name": "Acererak",
     "ip_reward": 13,
-    "hp": 202,
+    "hp": 346,
     "id": "acererak",
     "attacks": [
-      { "name": "Insect Plague", "type": "aoe", "dmg": 8, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Circle of Death", "type": "aoe", "dmg": 10, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Power Word Kill", "type": "single", "dmg": 15, "hitChance": 0.95, "critChance": 0.05 }
+      {
+        "name": "Insect Plague",
+        "type": "aoe",
+        "dmg": 8,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Circle of Death",
+        "type": "aoe",
+        "dmg": 10,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Power Word Kill",
+        "type": "single",
+        "dmg": 15,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      }
     ]
   },
   {
     "name": "Strahd",
     "ip_reward": 15,
-    "hp": 275,
+    "hp": 450,
     "id": "strahd",
     "attacks": [
-      { "name": "Bite", "type": "single", "dmg": 20, "hitChance": 0.95, "critChance": 0.05 },
-      { "name": "Steel Wind Strike", "type": "aoe", "dmg": 12, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Incendiary Cloud", "type": "aoe", "dmg": 15, "hitChance": 1.0, "critChance": 0.0 }
+      {
+        "name": "Bite",
+        "type": "single",
+        "dmg": 20,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      },
+      {
+        "name": "Steel Wind Strike",
+        "type": "aoe",
+        "dmg": 12,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Incendiary Cloud",
+        "type": "aoe",
+        "dmg": 15,
+        "hitChance": 1.0,
+        "critChance": 0.0,
+        "effect": "enfeeble"
+      }
     ]
   },
   {
@@ -93,9 +240,27 @@
     "hp": 99999,
     "id": "vecna",
     "attacks": [
-      { "name": "Toying with you", "type": "aoe", "dmg": 1, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Rewrite History", "type": "aoe", "dmg": 10, "hitChance": 1.0, "critChance": 0.0 },
-      { "name": "Metagame", "type": "single", "dmg": 200, "hitChance": 0.95, "critChance": 0.05 }
+      {
+        "name": "Toying with you",
+        "type": "aoe",
+        "dmg": 1,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Rewrite History",
+        "type": "aoe",
+        "dmg": 10,
+        "hitChance": 1.0,
+        "critChance": 0.0
+      },
+      {
+        "name": "Metagame",
+        "type": "single",
+        "dmg": 200,
+        "hitChance": 0.95,
+        "critChance": 0.05
+      }
     ]
   }
 ]
