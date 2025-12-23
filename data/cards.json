@@ -143,10 +143,20 @@
       {
         "type": "Support",
         "ability": "Refresh Volo's power",
-        "name": "Refresh Volo's power",
+        "name": "Refresh Volo's power (0 AP)",
         "actionType": "support",
         "primary": true,
+        "cooldown": 3,
+        "ap_cost": 0,
         "requiresTarget": false
+      },
+      {
+        "type": "DPS",
+        "ability": "Crossbow: 1 damage",
+        "actionType": "attack",
+        "hitChance": 0.95,
+        "critChance": 0.05,
+        "primary": false
       }
     ],
     "tier": 1,

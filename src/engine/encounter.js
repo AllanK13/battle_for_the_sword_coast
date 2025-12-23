@@ -359,13 +359,47 @@ export function playHeroAction(state, slotIndex, targetIndex=null, abilityIndex=
 
     // Shalendra: refresh Volo's summon availability for this encounter
     if (hid === 'shalendra') {
+      // Determine chosen ability (supports may have multiple abilities in data)
+      let chosenAbility = null;
+      try{
+        if(typeof abilityIndex === 'number' && hero && hero.base && Array.isArray(hero.base.abilities) && hero.base.abilities[abilityIndex]){
+          chosenAbility = hero.base.abilities[abilityIndex];
+        } else {
+          chosenAbility = (hero && hero.base && Array.isArray(hero.base.abilities)) ? (hero.base.abilities.find(a=>a.primary) || hero.base.abilities[0]) : null;
+        }
+      }catch(e){ chosenAbility = (hero && hero.base && Array.isArray(hero.base.abilities)) ? (hero.base.abilities.find(a=>a.primary) || hero.base.abilities[0]) : null; }
+
+      // Build a per-slot+ability key so cooldowns are per-ability, per-instance
+      let aiKey = 'primary';
+      try{
+        if(typeof abilityIndex === 'number') aiKey = String(abilityIndex);
+        else if(hero && hero.base && Array.isArray(hero.base.abilities)){
+          const idx = hero.base.abilities.indexOf(chosenAbility);
+          if(idx !== -1) aiKey = String(idx);
+        }
+      }catch(e){}
+      const inst = (hero && hero.cardId) ? hero.cardId : String(slotIndex);
+      const abilityKey = String(inst) + ':ability' + String(aiKey);
+
+      state.abilityCooldowns = state.abilityCooldowns || {};
+      // check cooldown for this specific ability instance
+      if(state.abilityCooldowns[abilityKey] && state.abilityCooldowns[abilityKey] > 0){ return { success:false, reason:'cooldown' }; }
+
+      // determine AP cost (default 1)
+      const apCost = (chosenAbility && typeof chosenAbility.ap_cost === 'number') ? Number(chosenAbility.ap_cost) : ((chosenAbility && typeof chosenAbility.apCost === 'number') ? Number(chosenAbility.apCost) : 1);
+      if(typeof state.ap === 'number' && state.ap < apCost){ return { success:false, reason:'not_enough_ap' }; }
+
       if (!state.summonUsed) state.summonUsed = {};
       state.summonUsed['volo'] = false;
       if (!state.summonCooldowns) state.summonCooldowns = {};
       state.summonCooldowns['volo'] = 0;
-      state.ap -= 1;
+      // consume AP if cost > 0
+      if(apCost > 0) state.ap -= apCost;
       state.supportUsed['shalendra'] = true;
-      return { success:true, type:'support', slot: slotIndex, id:'shalendra', refreshed: 'volo' };
+      // set ability cooldown (read from data or default to 3)
+      const cdVal = (chosenAbility && typeof chosenAbility.cooldown === 'number') ? Number(chosenAbility.cooldown) : 3;
+      if(cdVal > 0) state.abilityCooldowns[abilityKey] = cdVal;
+      return { success:true, type:'support', slot: slotIndex, id:'shalendra', refreshed: 'volo', cooldown: cdVal, abilityKey };
     }
 
     // Piter: special help action (marks this hero as helped for enemy single-target selection)

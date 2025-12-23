@@ -52,8 +52,11 @@ function slotNode(slotObj, idx, handlers={}, highlight=false, targetHighlight=fa
         // to the legacy `ability` text or a generic label.
         const label = (a && a.name) ? a.name : ((a && a.ability) ? a.ability : ('Ability '+(ai+1)));
         const b = el('button',{class:'btn slot-action ability-btn', 'data-ability-index': String(ai)},[ label ]);
-        // disable if not enough AP
-        if(handlers.ap !== undefined && handlers.ap < 1) b.setAttribute('disabled','');
+        // disable if not enough AP for this specific ability (allow ap_cost:0 abilities)
+        try{
+          const reqAp = (a && typeof a.ap_cost === 'number') ? Number(a.ap_cost) : ((a && typeof a.apCost === 'number') ? Number(a.apCost) : 1);
+          if(handlers.ap !== undefined && handlers.ap < reqAp) b.setAttribute('disabled','');
+        }catch(e){ if(handlers.ap !== undefined && handlers.ap < 1) b.setAttribute('disabled',''); }
         // disable if ability is on cooldown (per-hero id)
         try{
           // ability cooldowns are tracked per-cardId+ability index ("<cardId>:ability<index>")
@@ -432,7 +435,18 @@ export function renderBattle(root, ctx){
       ap: ctx.encounter.ap,
       onAction(idx, abilityIndex){
         try{ if(ctx._lastEnemyAttack) delete ctx._lastEnemyAttack; }catch(e){}
-        if(ctx.encounter.ap < 1) { if(ctx.setMessage) ctx.setMessage('Not enough AP'); return; }
+        // Determine required AP for this ability (default 1). Allow abilities with `ap_cost:0` to execute when AP is 0.
+        let requiredAp = 1;
+        try{
+          if(typeof abilityIndex === 'number' && hero && hero.base && Array.isArray(hero.base.abilities) && hero.base.abilities[abilityIndex]){
+            const pa = hero.base.abilities[abilityIndex];
+            requiredAp = (pa && typeof pa.ap_cost === 'number') ? Number(pa.ap_cost) : ((pa && typeof pa.apCost === 'number') ? Number(pa.apCost) : 1);
+          } else if(hero && hero.base && Array.isArray(hero.base.abilities) && hero.base.abilities.length>0){
+            const pa = hero.base.abilities.find(a=>a.primary) || hero.base.abilities[0];
+            requiredAp = (pa && typeof pa.ap_cost === 'number') ? Number(pa.ap_cost) : ((pa && typeof pa.apCost === 'number') ? Number(pa.apCost) : 1);
+          }
+        }catch(e){ requiredAp = 1; }
+        if(ctx.encounter.ap < requiredAp) { if(ctx.setMessage) ctx.setMessage('Not enough AP'); return; }
         // detect explicit actionType if present
         const hero = ctx.encounter.playfield[idx];
         let primary = null;
