@@ -168,7 +168,7 @@ body{background:linear-gradient(180deg,var(--bg),#071024);color:#e6eef8}
 /* Legendary Store tiles: use a distinct (taller) height than other upgrades */
 .upgrades-screen .legendary-grid .card-wrap,
 .upgrades-screen .legendary-grid .card{
-  height: 410px !important;
+  height: 460px !important;
   flex: 0 0 auto !important;
 }
 .upgrades-screen .legendary-grid .card .card-image{ max-height: calc(100% - 72px) !important }
